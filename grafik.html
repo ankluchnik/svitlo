@@ -38,7 +38,12 @@
 
   .groups { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 8px; margin-bottom: 20px; }
   .sgroup { padding: 0; color: rgba(17, 32, 62, .6); font-variant-numeric: tabular-nums; }
-  .sgroup[aria-checked="true"] { border-color: var(--yellow); background: #fff; color: var(--text); }
+  /* Колір кнопки черги = стан зараз за графіком: жовта — світло є, сіра — немає */
+  .sgroup.st-on { background: var(--yellow); border-color: var(--yellow); color: var(--text); }
+  .sgroup.st-off { background: var(--off); border-color: var(--off); color: var(--text); }
+  .sgroup.st-maybe { background: #e6e7e8; border-color: #e6e7e8; color: var(--text); }
+  .sgroup[aria-checked="true"] { color: var(--text); font-weight: 700; box-shadow: inset 0 0 0 2px var(--text); }
+  .chip-hint { margin: -12px 0 20px; font-size: 12px; color: var(--muted); }
   .sgroup:focus-visible, .btn:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 
   .notice { border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 14px; }
@@ -47,6 +52,26 @@
 
   .outage { border: 1px solid #cfcfcf; border-radius: 10px; padding: 15px; margin-bottom: 30px; font-size: 16px; }
   .outage .sub2 { font-size: 14px; color: var(--muted); }
+  .outage.st-on { background: #fffbd6; border-color: var(--yellow); }
+  .outage.st-off { background: #eff0f1; border-color: var(--off); }
+
+  /* Кнопка «попередній день» живе в заголовку найранішого показаного дня */
+  .prev-btn {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid rgba(17, 32, 62, .18);
+    background: rgba(255, 255, 255, .75); color: var(--text); font: inherit; font-size: 13px; font-weight: 500;
+    cursor: pointer; white-space: nowrap;
+  }
+  .prev-btn:hover { background: #fff; }
+  .prev-btn:disabled { opacity: .6; cursor: default; }
+  .prev-btn:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+  .prev-btn .short { display: none; }
+  .past-error { margin: -10px 0 14px; font-size: 13px; color: #8a1f14; }
+  @media (max-width: 845px) {
+    .prev-btn { height: 26px; padding: 0 10px; right: 6px; }
+    .prev-btn .full { display: none; }
+    .prev-btn .short { display: inline; }
+  }
 
   .discon-title { font-size: 22px; line-height: 26px; font-weight: 500; margin: 0 0 20px; }
   .day { margin-bottom: 40px; }
@@ -55,16 +80,22 @@
     background: var(--yellow); border: 1px solid var(--yellow); border-radius: 8.79px;
     font-size: 18px; font-weight: 500; line-height: 23px; margin-bottom: 18px;
   }
+  .date-pill { position: relative; }
   .date-pill .ic { width: 20px; height: 20px; background: var(--icon-off) no-repeat center / 16.33px 16.64px; }
+  .date-pill.past { background: var(--soft); border-color: var(--soft); }
   .summary { margin: 0 0 12px; font-size: 14px; }
   .summary .range { white-space: nowrap; }
-  .summary .t { color: var(--muted); white-space: nowrap; }
+  .summary .stats { color: var(--muted); margin-top: 2px; }
   .info { display: flex; gap: 10px; align-items: center; min-height: 24px; margin-bottom: 15px; font-size: 12px; line-height: 15.6px; }
   .info svg { flex: none; padding: 4px; box-sizing: content-box; }
   .info b { font-weight: 700; }
 
   /* Клітинки годин */
   .c-on { background: #fff; }
+  .c-na { background: repeating-linear-gradient(135deg, #ececec 0 4px, #fff 4px 8px); }
+  .empty-note { margin: 0 0 14px; font-size: 14px; }
+  .empty-note b { display: block; font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+  .empty-note span { color: var(--muted); }
   .c-off { background: var(--off) var(--icon-off) no-repeat center / 16px 16px; }
   .c-maybe { background: var(--maybe) var(--icon-maybe) no-repeat center / 16px 16px; }
   .c-first, .c-second, .c-mfirst, .c-msecond { position: relative; background: #fff var(--icon-on) no-repeat center / 16px 16px; }
@@ -144,10 +175,12 @@
   </header>
 
   <div class="groups" id="groups" role="radiogroup" aria-label="Черга"></div>
+  <p class="chip-hint">Жовта кнопка — зараз за графіком світло є, сіра — світла немає.</p>
   <div id="notices"></div>
   <div class="outage" id="now" hidden></div>
 
   <h2 class="discon-title">Графік відключень:</h2>
+  <div id="past"></div>
   <section class="day" id="today"></section>
   <section class="day" id="tomorrow"></section>
 
@@ -167,6 +200,9 @@
   const REPO = 'https://github.com/Baskerville42/outage-data-ua';
   const DEFAULT_GROUP = '3.2';
   const RELOAD_MS = 5 * 60 * 1000;
+  // Попередні дні: остання версія файлу в історії репозиторію перед кінцем потрібної доби.
+  const HISTORY_API = 'https://api.github.com/repos/Baskerville42/outage-data-ua/commits?path=data/dnipro.json&per_page=1&until=';
+  const RAW_AT = (sha) => `https://raw.githubusercontent.com/Baskerville42/outage-data-ua/${sha}/data/dnipro.json`;
   const FALLBACK_GROUPS = ['1.1', '1.2', '2.1', '2.2', '3.1', '3.2', '4.1', '4.2', '5.1', '5.2', '6.1', '6.2'];
 
   // Кожна година = дві половини: [перші 30 хв, другі 30 хв] — для підсумку і статусу «зараз».
@@ -188,7 +224,7 @@
     catch (e) { return 'Europe/Kiev'; }
   })();
   const partsFmt = new Intl.DateTimeFormat('en-CA', {
-    timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
   });
   const pillFmt = new Intl.DateTimeFormat('uk-UA', { timeZone: TZ, day: '2-digit', month: '2-digit', year: '2-digit' });
   const timeFmt = new Intl.DateTimeFormat('uk-UA', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
@@ -236,8 +272,21 @@
   function kyiv(date) {
     const p = {};
     for (const x of partsFmt.formatToParts(date)) p[x.type] = x.value;
-    return { ymd: `${p.year}-${p.month}-${p.day}`, h: Number(p.hour) % 24, m: Number(p.minute) };
+    return { ymd: `${p.year}-${p.month}-${p.day}`, h: Number(p.hour) % 24, m: Number(p.minute), s: Number(p.second) };
   }
+  // Київська північ (unix-секунди) з поправкою на перехід літнього/зимового часу (доба 23 або 25 год).
+  function snapMidnight(sec) {
+    const h = kyiv(new Date(sec * 1000)).h;
+    if (h === 23) return sec + 3600;
+    if (h === 1) return sec - 3600;
+    return sec;
+  }
+  function kyivMidnight(ms) {
+    const p = kyiv(new Date(ms));
+    return snapMidnight(Math.floor(ms / 1000) - (p.h * 3600 + p.m * 60 + p.s));
+  }
+  const prevMidnight = (sec) => snapMidnight(sec - 86400);
+  const nextMidnight = (sec) => snapMidnight(sec + 86400);
   const hhmm = (i) => `${String(Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`;
   const at = (i) => (i <= 48 ? hhmm(i) : `${hhmm(i - 48)} завтра`);
 
@@ -264,7 +313,12 @@
     });
     return out;
   }
-  const totalText = (r) => `${(r.reduce((n, [a, b]) => n + b - a, 0) / 2).toLocaleString('uk-UA')} год`;
+  const hoursText = (halves) => `${(halves / 2).toLocaleString('uk-UA')} год`;
+  function stateNow(hours) {
+    if (!hours) return null;
+    const n = kyiv(new Date());
+    return slotsOf(hours)[n.h * 2 + (n.m >= 30 ? 1 : 0)] || null;
+  }
 
   function groupList() {
     const set = new Set();
@@ -313,14 +367,14 @@
     return typeof v === 'string' && v ? v : `${String(h).padStart(2, '0')}-${String(h + 1).padStart(2, '0')}`;
   }
   function cellFor(v, h) {
-    const td = el('td', CELL[v] || 'c-on');
+    const td = el('td', CELL[v] || 'c-na');
     const t = `${hourLabel(h)}: ${typeText(v)}`;
     td.title = t;
     td.setAttribute('aria-label', t);
     return td;
   }
 
-  function renderGroups() {
+  function renderGroups(keys) {
     const list = groupList();
     const box = $('groups');
     const sig = list.join(',');
@@ -335,7 +389,17 @@
         return b;
       }));
     }
-    for (const b of box.children) b.setAttribute('aria-checked', String(b.dataset.group === group));
+    const todayData = data && keys.today ? data.fact.data[keys.today] : null;
+    const titles = { on: 'Зараз за графіком світло є', off: 'Зараз за графіком світла немає', maybe: 'Зараз можливе відключення' };
+    for (const b of box.children) {
+      const g = b.dataset.group;
+      const st = stateNow(todayData && todayData['GPV' + g]);
+      b.setAttribute('aria-checked', String(g === group));
+      b.classList.remove('st-on', 'st-off', 'st-maybe');
+      if (titles[st]) b.classList.add('st-' + st);
+      b.title = titles[st] || '';
+      b.setAttribute('aria-label', `Черга ${g}${titles[st] ? '. ' + titles[st] : ''}`);
+    }
     $('group-title').textContent = `Черга ${group}`;
     document.title = `Черга ${group} · графік відключень`;
   }
@@ -365,6 +429,7 @@
     const n = kyiv(new Date());
     const i = n.h * 2 + (n.m >= 30 ? 1 : 0);
     const cur = all[i];
+    box.className = cur === 'on' || cur === 'off' ? `outage st-${cur}` : 'outage';
     let j = i;
     while (j < all.length && all[j] === cur) j++;
     const noTomorrow = tomorrow ? '' : ' (графіка на завтра ще немає)';
@@ -390,7 +455,7 @@
     if (sub) box.append(el('div', 'sub2', sub));
   }
 
-  function infoLine() {
+  function infoLine(update) {
     const line = el('div', 'info');
     const ns = 'http://www.w3.org/2000/svg';
     const svg = document.createElementNS(ns, 'svg');
@@ -406,7 +471,7 @@
     p.setAttribute('stroke', '#5A636B'); p.setAttribute('stroke-width', '1.6'); p.setAttribute('stroke-linecap', 'round');
     svg.append(c, p);
     const text = el('span', null, 'Дата та час останнього оновлення інформації на графіку: ');
-    text.append(el('b', null, (data && data.fact && data.fact.update) || '—'));
+    text.append(el('b', null, update || '—'));
     line.append(svg, text);
     return line;
   }
@@ -473,37 +538,31 @@
     return box;
   }
 
-  function renderDay(box, prefix, key, hours, fallbackMs, isToday) {
-    box.replaceChildren();
-    const pill = el('div', 'date-pill');
+  function pillEl(prefix, date, past) {
+    const pill = el('div', past ? 'date-pill past' : 'date-pill');
     const label = el('div', null, `${prefix} `);
-    const date = key ? new Date(Number(key) * 1000) : new Date(fallbackMs);
     label.append(el('span', null, pillFmt.format(date)));
     pill.append(el('div', 'ic'), label);
-    box.append(pill);
+    return pill;
+  }
+  function messageEl(strong, text) {
+    const m = el('div', 'info-message');
+    m.append(el('b', null, strong));
+    if (text) m.append(el('span', null, text));
+    return m;
+  }
 
-    const message = (strong, text) => {
-      const m = el('div', 'info-message');
-      m.append(el('b', null, strong));
-      if (text) m.append(el('span', null, text));
-      box.append(m);
-    };
-    if (!data) { message(loadError ? 'Немає даних' : 'Завантаження…'); return; }
-    if (!key) {
-      if (isToday) message('Даних на сьогодні немає', 'Очікуйте на оновлення графіків або перевірте на сайті ДТЕК.');
-      else message('Даних на завтра ще немає', 'Інформація від НЕК «Укренерго» про обмеження на наступний день ще не надходила.');
-      return;
-    }
-    if (!hours) { message(`Для черги ${group} на цей день даних немає`); return; }
-
+  // Зони (інтервали без світла) + статистика по годинах.
+  function summaryEl(hours) {
     const slots = slotsOf(hours);
     const off = ranges(slots, 'off');
     const maybe = ranges(slots, 'maybe');
+    const count = (k) => slots.filter((s) => s === k).length;
     const summary = el('div', 'summary');
-    if (!off.length && !maybe.length) summary.append('Відключень за графіком немає');
+    if (!off.length && !maybe.length) summary.append(el('div', null, 'Відключень за графіком немає'));
     if (off.length) {
       const line = el('div');
-      line.append(el('b', null, 'Без світла: '), ...rangesNodes(off), el('span', 't', ` · ${totalText(off)}`));
+      line.append(el('b', null, 'Без світла: '), ...rangesNodes(off));
       summary.append(line);
     }
     if (maybe.length) {
@@ -511,7 +570,141 @@
       line.append(el('b', null, 'Можливо без світла: '), ...rangesNodes(maybe));
       summary.append(line);
     }
-    box.append(summary, infoLine(), desktopTable(hours), mobileTables(hours), legend(hours));
+    const stats = [`Без світла ${hoursText(count('off'))}`, `зі світлом ${hoursText(count('on'))}`];
+    if (count('maybe')) stats.push(`можливо без світла ${hoursText(count('maybe'))}`);
+    if (off.length) stats.push(`відключень: ${off.length}`);
+    summary.append(el('div', 'stats', stats.join(' · ')));
+    return summary;
+  }
+
+  function fillDay(box, hours, update) {
+    box.append(summaryEl(hours), infoLine(update), desktopTable(hours), mobileTables(hours), legend(hours));
+  }
+
+  // День без графіка: та сама таблиця, але з порожніми (заштрихованими) клітинками і поясненням зверху.
+  function emptyDay(box, strong, text) {
+    const note = el('div', 'empty-note');
+    note.append(el('b', null, strong));
+    if (text) note.append(el('span', null, text));
+    const lg = el('div', 'legend');
+    const li = el('div', 'li');
+    li.append(el('span', 'box c-na'), el('span', null, 'Графіка поки немає'));
+    lg.append(li);
+    box.append(note, desktopTable({}), mobileTables({}), lg);
+  }
+
+  function renderDay(box, prefix, key, hours, fallbackMs, isToday) {
+    box.replaceChildren();
+    box.append(pillEl(prefix, key ? new Date(Number(key) * 1000) : new Date(fallbackMs), false));
+    const message = (strong, text) => box.append(messageEl(strong, text));
+    if (!data) { message(loadError ? 'Немає даних' : 'Завантаження…'); return; }
+    if (!key) {
+      if (isToday) emptyDay(box, 'Графіків на сьогодні поки немає', 'Очікуйте на оновлення графіків або перевірте на сайті ДТЕК.');
+      else emptyDay(box, 'Графіків на завтра поки немає', 'Інформація від НЕК «Укренерго» про обмеження на наступний день ще не надходила.');
+      return;
+    }
+    if (!hours) { emptyDay(box, `Для черги ${group} на цей день графіка поки немає`); return; }
+    fillDay(box, hours, data.fact.update);
+  }
+
+  // ---- Попередні дні ----
+  let past = []; // [0] — вчора, [1] — позавчора, ...
+  let pastBase = 0; // київська північ «сьогодні», від якої рахували past
+  let pastLoading = false;
+  let pastError = null;
+  let pastExhausted = false;
+  const prevBtn = el('button', 'prev-btn');
+  prevBtn.type = 'button';
+  prevBtn.addEventListener('click', loadPrevDay);
+  const pastErr = el('div', 'past-error');
+
+  // Минулий день уже не зміниться, тому кешуємо його (усі черги) у браузері.
+  function readDayCache(ymd) {
+    try {
+      const v = JSON.parse(localStorage.getItem('dtek-day-' + ymd) || 'null');
+      return v && v.groups && typeof v.groups === 'object' && Number(v.key) ? v : null;
+    } catch (e) { return null; }
+  }
+  function writeDayCache(ymd, day) {
+    try { localStorage.setItem('dtek-day-' + ymd, JSON.stringify(day)); } catch (e) {}
+  }
+
+  async function fetchDay(key) {
+    const ymd = kyiv(new Date(key * 1000)).ymd;
+    const cached = readDayCache(ymd);
+    if (cached) return cached;
+    const until = new Date((nextMidnight(key) - 1) * 1000).toISOString();
+    const r = await fetch(HISTORY_API + encodeURIComponent(until));
+    if (r.status === 403 || r.status === 429) throw new Error('GitHub тимчасово обмежив кількість запитів (60 на годину). Спробуйте пізніше.');
+    if (!r.ok) throw new Error(`GitHub API: HTTP ${r.status}`);
+    const commits = await r.json();
+    const sha = Array.isArray(commits) && commits[0] && commits[0].sha;
+    if (!sha) return { ymd, key, none: true };
+    if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error('неочікувана відповідь GitHub');
+    const r2 = await fetch(RAW_AT(sha));
+    if (!r2.ok) throw new Error(`HTTP ${r2.status}`);
+    const json = await r2.json();
+    const days = (json && json.fact && json.fact.data) || {};
+    const dk = Object.keys(days).find((k) => kyiv(new Date(Number(k) * 1000)).ymd === ymd);
+    if (!dk) return { ymd, key, missing: true };
+    const day = { ymd, key, update: String((json.fact && json.fact.update) || ''), groups: days[dk] };
+    writeDayCache(ymd, day);
+    return day;
+  }
+
+  async function loadPrevDay() {
+    if (pastLoading || pastExhausted) return;
+    const base = kyivMidnight(Date.now());
+    if (base !== pastBase) { past = []; pastBase = base; pastExhausted = false; }
+    pastLoading = true;
+    pastError = null;
+    renderPast();
+    try {
+      const from = past.length ? past[past.length - 1].key : base;
+      const day = await fetchDay(prevMidnight(from));
+      if (day.none) pastExhausted = true;
+      else past.push(day);
+    } catch (e) {
+      pastError = (e && e.message) || String(e);
+    } finally {
+      pastLoading = false;
+      renderPast();
+    }
+  }
+
+  function renderPast() {
+    const base = kyivMidnight(Date.now());
+    if (pastBase && base !== pastBase) { past = []; pastBase = base; pastExhausted = false; }
+    const yesterday = kyiv(new Date((base - 3600) * 1000)).ymd;
+    const box = $('past');
+    box.replaceChildren();
+    for (const day of past.slice().reverse()) {
+      const sec = el('section', 'day');
+      sec.append(pillEl(day.ymd === yesterday ? 'за вчора' : 'за', new Date(day.key * 1000), true));
+      const hours = day.groups && day.groups['GPV' + group];
+      if (day.missing) emptyDay(sec, 'За цей день даних немає', 'У копії даних немає графіка на цю дату.');
+      else if (!hours) emptyDay(sec, `Для черги ${group} за цей день даних немає`);
+      else fillDay(sec, hours, day.update);
+      box.append(sec);
+    }
+    // Кнопку переносимо в заголовок найранішого дня: перший з попередніх або «на сьогодні».
+    const top = box.querySelector('.date-pill') || document.querySelector('#today .date-pill');
+    const nextKey = prevMidnight(past.length ? past[past.length - 1].key : base);
+    const hint = pastExhausted ? 'Старіших даних немає' : `Показати графік за ${pillFmt.format(new Date(nextKey * 1000))}`;
+    prevBtn.disabled = pastLoading || pastExhausted;
+    prevBtn.title = hint;
+    prevBtn.setAttribute('aria-label', hint);
+    prevBtn.replaceChildren(
+      el('span', 'full', pastLoading ? 'Завантаження…' : pastExhausted ? 'Старіших немає' : '‹ Попередній день'),
+      el('span', 'short', pastLoading ? '…' : pastExhausted ? 'Немає' : '‹ Раніше'),
+    );
+    if (top) top.append(prevBtn); else prevBtn.remove();
+    if (pastError && top) {
+      pastErr.textContent = pastError;
+      top.after(pastErr);
+    } else {
+      pastErr.remove();
+    }
   }
 
   function renderMeta() {
@@ -532,8 +725,8 @@
   }
 
   function render() {
-    renderGroups();
     const keys = dayKeys();
+    renderGroups(keys);
     const today = data && keys.today ? hoursFor(keys.today) : null;
     const tomorrow = data && keys.tomorrow ? hoursFor(keys.tomorrow) : null;
     renderNotices(keys);
@@ -541,6 +734,7 @@
     const now = Date.now();
     renderDay($('today'), 'на сьогодні', keys.today, today, now, true);
     renderDay($('tomorrow'), 'на завтра', keys.tomorrow, tomorrow, now + 864e5, false);
+    renderPast();
     renderMeta();
   }
 
