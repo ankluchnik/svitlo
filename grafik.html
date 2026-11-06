@@ -93,9 +93,6 @@
   /* Клітинки годин */
   .c-on { background: #fff; }
   .c-na { background: repeating-linear-gradient(135deg, #ececec 0 4px, #fff 4px 8px); }
-  .empty-note { margin: 0 0 14px; font-size: 14px; }
-  .empty-note b { display: block; font-size: 16px; font-weight: 700; margin-bottom: 2px; }
-  .empty-note span { color: var(--muted); }
   .c-off { background: var(--off) var(--icon-off) no-repeat center / 16px 16px; }
   .c-maybe { background: var(--maybe) var(--icon-maybe) no-repeat center / 16px 16px; }
   .c-first, .c-second, .c-mfirst, .c-msecond { position: relative; background: #fff var(--icon-on) no-repeat center / 16px 16px; }
@@ -192,14 +189,18 @@
 (() => {
   'use strict';
 
-  // Дані: копія DisconSchedule.fact/preset зі сторінки https://www.dtek-dnem.com.ua/ua/shutdowns,
-  // яку публічний репозиторій оновлює приблизно кожні 5 хв. Сам сайт ДТЕК не дозволяє
-  // читати свої дані з інших сторінок (немає CORS + антибот), тому напряму звідси їх не взяти.
+  // Джерела даних (беремо обидва паралельно, для кожного дня показуємо новіше):
+  // 1) LIVE_URL — ваш Cloudflare Worker, який на кожен запит бере свіжий JSON з відкритого API YASNO
+  //    (Дніпро, ДнЕМ). Це «живі» дані на момент відкриття / натискання «Оновити».
+  // 2) SRC — копія DisconSchedule.fact/preset зі сторінки https://www.dtek-dnem.com.ua/ua/shutdowns,
+  //    яку публічний репозиторій оновлює приблизно кожні 5 хв (запасний варіант + підписи легенди).
+  const LIVE_URL = 'https://svitlo.akluchnik-dp.workers.dev';
   const SRC = 'https://raw.githubusercontent.com/Baskerville42/outage-data-ua/main/data/dnipro.json';
   const SITE = 'https://www.dtek-dnem.com.ua/ua/shutdowns';
   const REPO = 'https://github.com/Baskerville42/outage-data-ua';
   const DEFAULT_GROUP = '3.2';
   const RELOAD_MS = 5 * 60 * 1000;
+  const REFRESH_COOLDOWN_MS = 1000; // кнопка «Оновити» — не частіше разу на секунду
   // Попередні дні: остання версія файлу в історії репозиторію перед кінцем потрібної доби.
   const HISTORY_API = 'https://api.github.com/repos/Baskerville42/outage-data-ua/commits?path=data/dnipro.json&per_page=1&until=';
   const RAW_AT = (sha) => `https://raw.githubusercontent.com/Baskerville42/outage-data-ua/${sha}/data/dnipro.json`;
@@ -228,6 +229,87 @@
   });
   const pillFmt = new Intl.DateTimeFormat('uk-UA', { timeZone: TZ, day: '2-digit', month: '2-digit', year: '2-digit' });
   const timeFmt = new Intl.DateTimeFormat('uk-UA', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
+  const timeSecFmt = new Intl.DateTimeFormat('uk-UA', { timeZone: TZ, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+  // ---- YASNO → той самий формат, що й у ДТЕК ({"1": "yes"|"no"|"first"|..., …, "24": …}) ----
+  const YTYPE = { Definite: 'off', NotPlanned: 'on' };
+  function yasnoHours(slots) {
+    const stateAt = (min) => {
+      const s = slots.find((x) => min >= x.start && min < x.end);
+      return s ? (YTYPE[s.type] || 'maybe') : 'on';
+    };
+    const hours = {};
+    for (let h = 0; h < 24; h++) {
+      const a = stateAt(h * 60 + 15);
+      const b = stateAt(h * 60 + 45);
+      let v;
+      if (a === b) v = a === 'on' ? 'yes' : a === 'off' ? 'no' : 'maybe';
+      else if (a === 'off' && b === 'on') v = 'first';
+      else if (a === 'on' && b === 'off') v = 'second';
+      else if (a === 'maybe' && b === 'on') v = 'mfirst';
+      else if (a === 'on' && b === 'maybe') v = 'msecond';
+      else v = 'no';
+      hours[h + 1] = v;
+    }
+    return hours;
+  }
+  // Рядок для порівняння часу оновлення: «YYYY-MM-DD HH:MM» за Києвом.
+  function kyivStamp(ms) {
+    if (!Number.isFinite(ms)) return '';
+    const p = {};
+    for (const x of partsFmt.formatToParts(new Date(ms))) p[x.type] = x.value;
+    return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}`;
+  }
+  function dtekStamp(s) {
+    const m = /^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})/.exec(String(s || ''));
+    return m ? `${m[3]}-${m[2]}-${m[1]} ${m[4]}:${m[5]}` : '';
+  }
+  const showStamp = (st) => (st ? st.replace(/^(\d{4})-(\d{2})-(\d{2}) /, '$3.$2.$1 ') : '—');
+
+  // Відповідь YASNO: { "3.2": { today: {date, status, slots}, tomorrow: {...}, updatedOn }, … }
+  function parseYasno(json) {
+    const days = {};
+    for (const [g, gd] of Object.entries(json || {})) {
+      if (!/^\d+\.\d+$/.test(g) || !gd || typeof gd !== 'object') continue;
+      const stamp = kyivStamp(Date.parse(gd.updatedOn));
+      for (const part of ['today', 'tomorrow']) {
+        const d = gd[part];
+        const ms = d && Date.parse(d.date);
+        if (!Number.isFinite(ms)) continue;
+        const key = String(Math.round(ms / 1000));
+        const day = days[key] || (days[key] = { groups: {}, notes: {}, stamp: '' });
+        if (stamp > day.stamp) day.stamp = stamp;
+        const k = 'GPV' + g;
+        if (d.status === 'ScheduleApplies') day.groups[k] = yasnoHours(Array.isArray(d.slots) ? d.slots : []);
+        else if (d.status === 'NoOutages') day.groups[k] = yasnoHours([]);
+        else if (d.status === 'EmergencyShutdowns') day.notes[k] = 'EmergencyShutdowns';
+        // WaitingForSchedule — графіка ще немає, день не додаємо
+      }
+    }
+    for (const k of Object.keys(days)) {
+      if (!Object.keys(days[k].groups).length && !Object.keys(days[k].notes).length) delete days[k];
+    }
+    return days;
+  }
+
+  // Для кожного дня беремо джерело з новішим часом оновлення (при рівному — YASNO).
+  function mergeSources(mirror, yasno) {
+    if (!mirror && !yasno) return null;
+    const days = {};
+    const info = {};
+    const put = (key, groups, notes, stamp, src, winsTie) => {
+      const cur = info[key];
+      if (cur && (stamp < cur.stamp || (stamp === cur.stamp && !winsTie))) return;
+      days[key] = groups;
+      info[key] = { stamp, src, notes: notes || {} };
+    };
+    if (mirror && mirror.fact && mirror.fact.data) {
+      const st = dtekStamp(mirror.fact.update);
+      for (const [k, g] of Object.entries(mirror.fact.data)) put(k, g, null, st, 'копія сайту ДТЕК', false);
+    }
+    if (yasno) for (const [k, d] of Object.entries(yasno)) put(k, d.groups, d.notes, d.stamp, 'YASNO', true);
+    return { fact: { data: days }, preset: (mirror && mirror.preset) || null, info };
+  }
 
   const $ = (id) => document.getElementById(id);
   function el(tag, cls, text) {
@@ -241,6 +323,12 @@
   let loadedAt = 0;
   let loading = false;
   let loadError = null;
+  let mirror = null; // остання копія ДТЕК (raw JSON)
+  let yasno = null; // останні дані YASNO (вже перетворені по днях)
+  let mirrorErr = null;
+  let yasnoErr = null;
+  let yasnoAt = 0;
+  let lastManualAt = 0; // коли востаннє натискали «Оновити»
   let group = readGroup() || storedGroup() || DEFAULT_GROUP;
   let groupsSig = '';
 
@@ -321,15 +409,17 @@
   }
 
   function groupList() {
-    const set = new Set();
+    // Базові 12 черг показуємо завжди (навіть якщо для якоїсь зараз немає таблиці, напр. екстрені відключення).
+    const set = new Set(FALLBACK_GROUPS);
     const days = (data && data.fact && data.fact.data) || {};
-    for (const day of Object.values(days)) {
+    const notes = Object.values((data && data.info) || {}).map((i) => i.notes || {});
+    for (const day of [...Object.values(days), ...notes]) {
       for (const k of Object.keys(day || {})) {
         const m = /^GPV(\d+)\.(\d+)$/.exec(k);
         if (m && Number(m[1]) < 100) set.add(`${m[1]}.${m[2]}`);
       }
     }
-    const list = set.size ? [...set] : FALLBACK_GROUPS.slice();
+    const list = [...set];
     return list.sort((x, y) => {
       const [a1, a2] = x.split('.').map(Number);
       const [b1, b2] = y.split('.').map(Number);
@@ -412,16 +502,26 @@
       add('err', `Не вдалося завантажити дані (${loadError}). Перевірте інтернет і натисніть «Оновити».`);
       return;
     }
-    if (loadError) add('warn', `Не вдалося оновити дані (${loadError}), показано попередню версію.`);
-    if (data && data.lastUpdateStatus && data.lastUpdateStatus.ok === false) {
+    if (yasnoErr && mirrorErr) {
+      add('warn', `Не вдалося оновити дані (${yasnoErr}). Перевірте інтернет — показано дані попереднього успішного оновлення.`);
+    } else if (yasnoErr) {
+      add('warn', `Не вдалося отримати свіжі дані YASNO (${yasnoErr}). Показано ${yasno ? 'дані попереднього запиту та ' : ''}копію сайту ДТЕК — вона може відставати на 5–10 хв.`);
+    }
+    if (!yasno && mirror && mirror.lastUpdateStatus && mirror.lastUpdateStatus.ok === false) {
       add('warn', 'Копія не змогла отримати свіжі дані з сайту ДТЕК, графік може бути застарілим. Перевірте на сайті.');
     }
-    if (data && !keys.today) add('warn', 'У даних немає графіка на сьогодні — можливо, копія застаріла. Перевірте на сайті ДТЕК.');
+    if (data && !keys.today) add('warn', 'У даних немає графіка на сьогодні. Перевірте на сайті ДТЕК.');
   }
 
-  function renderNow(today, tomorrow) {
+  function renderNow(today, tomorrow, todayNote) {
     const box = $('now');
     box.replaceChildren();
+    if (!today && todayNote === 'EmergencyShutdowns') {
+      box.hidden = false;
+      box.className = 'outage st-off';
+      box.append(el('div', null, 'Діють екстрені відключення'), el('div', 'sub2', 'Графіки зараз не застосовуються, час відновлення світла може змінюватися.'));
+      return;
+    }
     if (!today) { box.hidden = true; return; }
     box.hidden = false;
 
@@ -455,7 +555,7 @@
     if (sub) box.append(el('div', 'sub2', sub));
   }
 
-  function infoLine(update) {
+  function infoLine(update, src) {
     const line = el('div', 'info');
     const ns = 'http://www.w3.org/2000/svg';
     const svg = document.createElementNS(ns, 'svg');
@@ -472,6 +572,7 @@
     svg.append(c, p);
     const text = el('span', null, 'Дата та час останнього оновлення інформації на графіку: ');
     text.append(el('b', null, update || '—'));
+    if (src) text.append(` · джерело: ${src}`);
     line.append(svg, text);
     return line;
   }
@@ -577,20 +678,13 @@
     return summary;
   }
 
-  function fillDay(box, hours, update) {
-    box.append(summaryEl(hours), infoLine(update), desktopTable(hours), mobileTables(hours), legend(hours));
+  function fillDay(box, hours, update, src) {
+    box.append(summaryEl(hours), infoLine(update, src), desktopTable(hours), mobileTables(hours), legend(hours));
   }
 
-  // День без графіка: та сама таблиця, але з порожніми (заштрихованими) клітинками і поясненням зверху.
+  // День без графіка: лише повідомлення, без таблиці.
   function emptyDay(box, strong, text) {
-    const note = el('div', 'empty-note');
-    note.append(el('b', null, strong));
-    if (text) note.append(el('span', null, text));
-    const lg = el('div', 'legend');
-    const li = el('div', 'li');
-    li.append(el('span', 'box c-na'), el('span', null, 'Графіка поки немає'));
-    lg.append(li);
-    box.append(note, desktopTable({}), mobileTables({}), lg);
+    box.append(messageEl(strong, text));
   }
 
   function renderDay(box, prefix, key, hours, fallbackMs, isToday) {
@@ -603,8 +697,16 @@
       else emptyDay(box, 'Графіків на завтра поки немає', 'Інформація від НЕК «Укренерго» про обмеження на наступний день ще не надходила.');
       return;
     }
-    if (!hours) { emptyDay(box, `Для черги ${group} на цей день графіка поки немає`); return; }
-    fillDay(box, hours, data.fact.update);
+    const info = (data.info && data.info[key]) || {};
+    if (!hours) {
+      if (info.notes && info.notes['GPV' + group] === 'EmergencyShutdowns') {
+        emptyDay(box, 'Діють екстрені відключення', 'Графіки стабілізаційних відключень зараз не застосовуються. Час відновлення світла може змінюватися.');
+      } else {
+        emptyDay(box, `Для черги ${group} на цей день графіка поки немає`);
+      }
+      return;
+    }
+    fillDay(box, hours, showStamp(info.stamp), info.src);
   }
 
   // ---- Попередні дні ----
@@ -684,7 +786,7 @@
       const hours = day.groups && day.groups['GPV' + group];
       if (day.missing) emptyDay(sec, 'За цей день даних немає', 'У копії даних немає графіка на цю дату.');
       else if (!hours) emptyDay(sec, `Для черги ${group} за цей день даних немає`);
-      else fillDay(sec, hours, day.update);
+      else fillDay(sec, hours, day.update, 'архів копії сайту ДТЕК');
       box.append(sec);
     }
     // Кнопку переносимо в заголовок найранішого дня: перший з попередніх або «на сьогодні».
@@ -711,14 +813,17 @@
     const box = $('meta');
     box.replaceChildren();
     const parts = [];
-    const checked = data && data.lastUpdateStatus && Date.parse(data.lastUpdateStatus.at);
-    if (checked) parts.push(`копію даних перевірено о ${timeFmt.format(new Date(checked))}`);
-    if (loadedAt) parts.push(`сторінку оновлено о ${timeFmt.format(new Date(loadedAt))}`);
-    if (parts.length) box.append(el('p', null, parts.join(', ').replace(/^./, (c) => c.toUpperCase()) + '.'));
+    if (yasnoAt) {
+      const stale = Date.now() - yasnoAt > 60 * 1000 ? ' (свіжі дані YASNO — кнопкою «Оновити»)' : '';
+      parts.push(`YASNO запитано о ${timeSecFmt.format(new Date(yasnoAt))}${stale}`);
+    }
+    const checked = mirror && mirror.lastUpdateStatus && Date.parse(mirror.lastUpdateStatus.at);
+    if (checked) parts.push(`копію сайту ДТЕК перевірено о ${timeFmt.format(new Date(checked))}`);
+    if (parts.length) box.append(el('p', null, parts.join(' · ') + '.'));
     const links = el('p');
     const a1 = el('a', null, 'Сайт ДТЕК');
     a1.href = SITE; a1.target = '_blank'; a1.rel = 'noopener';
-    const a2 = el('a', null, 'джерело даних');
+    const a2 = el('a', null, 'копія даних ДТЕК');
     a2.href = REPO; a2.target = '_blank'; a2.rel = 'noopener';
     links.append(a1, ' · ', a2);
     box.append(links);
@@ -730,7 +835,8 @@
     const today = data && keys.today ? hoursFor(keys.today) : null;
     const tomorrow = data && keys.tomorrow ? hoursFor(keys.tomorrow) : null;
     renderNotices(keys);
-    renderNow(today, tomorrow);
+    const todayInfo = data && keys.today && data.info ? data.info[keys.today] : null;
+    renderNow(today, tomorrow, todayInfo && todayInfo.notes ? todayInfo.notes['GPV' + group] : null);
     const now = Date.now();
     renderDay($('today'), 'на сьогодні', keys.today, today, now, true);
     renderDay($('tomorrow'), 'на завтра', keys.tomorrow, tomorrow, now + 864e5, false);
@@ -738,43 +844,71 @@
     renderMeta();
   }
 
-  async function load() {
+  async function fetchMirror() {
+    const r = await fetch(SRC, { cache: 'no-cache' });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const json = await r.json();
+    if (!json || !json.fact || typeof json.fact.data !== 'object') throw new Error('неочікуваний формат');
+    return json;
+  }
+  async function fetchYasno() {
+    const r = await fetch(LIVE_URL, { cache: 'no-store' });
+    const json = await r.json().catch(() => null);
+    if (json && json.error) throw new Error(json.error);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    if (!json || !Object.values(json).some((g) => g && g.today)) throw new Error('неочікуваний формат');
+    // Коли Worker взяв дані з YASNO.
+    const fetchedAt = Date.parse(r.headers.get('X-Fetched-At') || '');
+    return { days: parseYasno(json), fetchedAt: Number.isFinite(fetchedAt) ? fetchedAt : Date.now() };
+  }
+
+  // live = true  — відкриття сторінки або кнопка «Оновити»: GitHub-копія + свіжий запит до Worker (YASNO).
+  // live = false — автооновлення (таймер, повернення на вкладку): лише GitHub-копія, Worker не викликаємо.
+  async function load(live) {
     if (loading) return;
     loading = true;
     const btn = $('refresh');
     btn.disabled = true;
     btn.textContent = 'Оновлення…';
+    const errText = (e) => (e && e.message) || String(e);
     try {
-      const r = await fetch(SRC, { cache: 'no-cache' });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const json = await r.json();
-      if (!json || !json.fact || typeof json.fact.data !== 'object') throw new Error('неочікуваний формат');
-      data = json;
+      const [m, y] = await Promise.allSettled(live ? [fetchMirror(), fetchYasno()] : [fetchMirror()]);
+      if (m.status === 'fulfilled') { mirror = m.value; mirrorErr = null; } else mirrorErr = errText(m.reason);
+      if (y && y.status === 'fulfilled') { yasno = y.value.days; yasnoAt = y.value.fetchedAt; yasnoErr = null; } else if (y) yasnoErr = errText(y.reason);
+      data = mergeSources(mirror, yasno);
       loadedAt = Date.now();
-      loadError = null;
+      loadError = data ? null : (yasnoErr || mirrorErr || 'немає даних');
     } catch (e) {
-      loadError = (e && e.message) || String(e);
+      loadError = errText(e);
     } finally {
       loading = false;
-      btn.disabled = false;
       btn.textContent = 'Оновити';
+      // Кнопка знову активна не раніше ніж через секунду після останнього натискання.
+      const left = REFRESH_COOLDOWN_MS - (Date.now() - lastManualAt);
+      if (left > 0) setTimeout(() => { if (!loading) btn.disabled = false; }, left);
+      else btn.disabled = false;
       render();
     }
   }
 
-  $('refresh').addEventListener('click', load);
+  $('refresh').addEventListener('click', () => {
+    if (loading || Date.now() - lastManualAt < REFRESH_COOLDOWN_MS) return;
+    lastManualAt = Date.now();
+    load(true);
+  });
   window.addEventListener('hashchange', () => {
     const g = readGroup();
     if (g && g !== group) { group = g; render(); }
   });
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && Date.now() - loadedAt > 2 * 60 * 1000) load();
+    // Повернулись на вкладку — підтягуємо GitHub-копію (Worker — лише за кнопкою «Оновити»).
+    if (!document.hidden && Date.now() - loadedAt > 30 * 1000) load(false);
   });
   setInterval(render, 60 * 1000);
-  setInterval(load, RELOAD_MS);
+  setInterval(() => { if (!document.hidden) load(false); }, RELOAD_MS);
 
   render();
-  load();
+  load(true);
 })();
 </script>
 </body>
