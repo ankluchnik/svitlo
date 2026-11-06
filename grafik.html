@@ -44,7 +44,6 @@
   .sgroup.st-off { background: var(--off); border-color: var(--off); color: var(--text); }
   .sgroup.st-maybe { background: #e6e7e8; border-color: #e6e7e8; color: var(--text); }
   .sgroup[aria-checked="true"] { color: var(--text); font-weight: 700; box-shadow: inset 0 0 0 2px var(--text); }
-  .chip-hint { margin: -12px 0 20px; font-size: 12px; color: var(--muted); }
   .sgroup:focus-visible, .btn:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 
   .notice { border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 14px; }
@@ -53,6 +52,15 @@
 
   .outage { border: 1px solid #cfcfcf; border-radius: 10px; padding: 15px; margin-bottom: 30px; font-size: 16px; }
   .outage .sub2 { font-size: 14px; color: var(--muted); }
+  .outage .v-short { display: none; }
+  @media (max-width: 480px) {
+    /* на телефоні: великий стан на майже всю ширину + компактний другий рядок («Відключення о 06:30 (4:49)») */
+    .outage .v-full { display: none; }
+    .outage .v-short { display: inline; }
+    /* фіксований розмір: «Зараз світла немає» вміщується в 1 рядок навіть на 320 px */
+    .outage .now-title { font-size: 24px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .outage .sub2 { font-size: 13px; margin-top: 2px; }
+  }
   /* Ті самі кольори, що й у кнопок черг: жовтий — світло є, сірий — світла немає */
   .outage.st-on { background: var(--yellow); border-color: var(--yellow); }
   .outage.st-off { background: var(--off); border-color: var(--off); }
@@ -70,6 +78,14 @@
   .prev-btn:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
   .prev-btn .short { display: none; }
   .past-error { margin: -10px 0 14px; font-size: 13px; color: #8a1f14; }
+  @media (max-width: 480px) {
+    /* на телефоні кнопка стоїть у ряду праворуч від дати (а не поверх) — накладання неможливе */
+    .day .date-pill { padding: 6px 6px 6px 12px; gap: 8px; }
+    .date-pill .pill-label { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .day .date-pill .p-full { display: none; }
+    .day .date-pill .p-short { display: inline; }
+    .date-pill .prev-btn { position: static; transform: none; margin-left: auto; flex: none; }
+  }
   @media (max-width: 845px) {
     .prev-btn { height: 26px; padding: 0 10px; right: 6px; }
     .prev-btn .full { display: none; }
@@ -85,12 +101,13 @@
   }
   .date-pill { position: relative; }
   .date-pill .ic { width: 20px; height: 20px; background: var(--icon-off) no-repeat center / 16.33px 16.64px; }
+  .date-pill .p-short { display: none; }
   .date-pill.past { background: var(--soft); border-color: var(--soft); }
   /* Підсумок дня: інтервали без світла «плашками» + коротка статистика */
   /* Однаковий відступ 12 px: плашка дати → плашки відключень → смуга → таблиця */
   .summary { margin: 0 0 12px; }
-  .summary-none { font-size: 16px; font-weight: 500; margin-bottom: 12px; }
-  .ranges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .summary-none { font-size: 16px; font-weight: 500; }
+  .ranges { display: flex; flex-wrap: wrap; gap: 6px; }
   .range-pill {
     display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 8px; border-radius: 8px;
     background: var(--off); font-size: 16px; font-weight: 500; line-height: 20px;
@@ -105,7 +122,7 @@
     .range-pill .ic { width: 12px; height: 12px; background-size: 12px 12px; }
   }
   /* Смуга доби: зони пропорційні часу, заокруглення лише на краях смуги */
-  .daybar { position: relative; display: flex; height: 24px; border-radius: 6px; overflow: hidden; margin: 0; }
+  .daybar { position: relative; display: flex; height: 24px; border-radius: 6px; overflow: hidden; margin: 0 0 8px; }
   .daybar .seg {
     flex: 1 1 0; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 3px;
     container-type: inline-size; background: var(--off);
@@ -129,7 +146,7 @@
   .daybar .now-mark { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #d93a2b; box-shadow: 0 0 0 1px #fff; }
   .range-pill.maybe .ic { background-image: var(--icon-maybe); }
   .range-pill small { font-size: 13px; font-weight: 400; color: rgba(17, 32, 62, .78); }
-  .totals { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14px; color: var(--muted); margin-top: 4px; }
+  .totals { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14px; color: var(--muted); }
   .page-legend { margin: 0 0 20px; }
   .totals .total { display: inline-flex; align-items: center; gap: 6px; }
   .totals b { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -153,7 +170,7 @@
   .c-second::before, .c-msecond::before { right: 0; border-left: 1px solid var(--line); background-position: -7px center; }
 
   /* Десктоп: одна таблиця на 24 колонки, підписи вертикально */
-  table.fact { width: 100%; table-layout: fixed; border: 1px solid var(--line); border-collapse: separate; border-spacing: 0; border-radius: 10px; margin-bottom: 15px; }
+  table.fact { width: 100%; table-layout: fixed; border: 1px solid var(--line); border-collapse: separate; border-spacing: 0; border-radius: 10px; margin-bottom: 12px; }
   .fact th, .fact td { padding: 0; border-right: 1px solid var(--line); }
   .fact th:last-child, .fact td:last-child { border-right: 0; }
   .fact thead th { height: 55px; border-bottom: 1px solid var(--line); font-size: 14px; font-weight: 500; vertical-align: middle; }
@@ -163,7 +180,7 @@
   .fact tbody td { height: 38px; }
 
   /* Мобільний: дві вертикальні таблиці по 12 годин */
-  .table2col { display: none; justify-content: center; gap: 20px; margin-bottom: 15px; }
+  .table2col { display: none; justify-content: center; gap: 20px; margin-bottom: 12px; }
   .table2col table { width: min-content; min-width: 106px; border: 1px solid var(--line); border-collapse: separate; border-spacing: 0; border-radius: 10px; }
   .table2col th, .table2col td { padding: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
   .table2col th:last-child, .table2col td:last-child { border-right: 0; }
@@ -220,7 +237,6 @@
   </header>
 
   <div class="groups" id="groups" role="radiogroup" aria-label="Черга"></div>
-  <p class="chip-hint">Жовта кнопка — зараз за графіком світло є, сіра — світла немає.</p>
   <div id="notices"></div>
   <div class="outage" id="now" hidden></div>
 
@@ -277,6 +293,7 @@
     timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
   });
   const pillFmt = new Intl.DateTimeFormat('uk-UA', { timeZone: TZ, day: '2-digit', month: '2-digit', year: '2-digit' });
+  const pillShortFmt = new Intl.DateTimeFormat('uk-UA', { timeZone: TZ, day: '2-digit', month: '2-digit' });
   const timeFmt = new Intl.DateTimeFormat('uk-UA', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
   const timeSecFmt = new Intl.DateTimeFormat('uk-UA', { timeZone: TZ, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
@@ -558,7 +575,7 @@
     if (!today && todayNote === 'EmergencyShutdowns') {
       box.hidden = false;
       box.className = 'outage st-off';
-      box.append(el('div', null, 'Діють екстрені відключення'), el('div', 'sub2', 'Графіки зараз не застосовуються, час відновлення світла може змінюватися.'));
+      box.append(el('div', null, 'Діють екстрені відключення'), el('div', 'sub2', 'Графіки не застосовуються'));
       return;
     }
     if (!today) { box.hidden = true; return; }
@@ -566,32 +583,53 @@
 
     const all = slotsOf(today).concat(tomorrow ? slotsOf(tomorrow) : []);
     const n = kyiv(new Date());
+    const nowSec = n.h * 3600 + n.m * 60 + n.s;
     const i = n.h * 2 + (n.m >= 30 ? 1 : 0);
     const cur = all[i];
     box.className = cur === 'on' || cur === 'off' ? `outage st-${cur}` : 'outage';
     let j = i;
     while (j < all.length && all[j] === cur) j++;
-    const noTomorrow = tomorrow ? '' : ' (графіка на завтра ще немає)';
-    const tail = j >= all.length ? noTomorrow : '';
+    // Скільки лишилося до межі j (половинки години від початку сьогоднішньої доби), хвилини округлюємо вгору:
+    // о 01:41:30 до 06:30 лишається 4:48:30 → «4:49» (телефон) / «4 год 49 хв» (великий екран).
+    const mins = Math.max(0, Math.ceil((j * 1800 - nowSec) / 60));
+    const hh = Math.floor(mins / 60);
+    const mm = mins % 60;
+    const leftShort = `${hh}:${String(mm).padStart(2, '0')}`;
+    const leftLong = hh && mm ? `${hh} год ${mm} хв` : hh ? `${hh} год` : `${mm} хв`;
 
+    // Два варіанти другого рядка: повний (великий екран) і стислий (телефон, щоб блок був у 2 рядки).
     let title;
-    let sub;
+    let full = '';
+    let short = '';
     if (cur === 'off') {
-      title = 'Зараз за графіком світла немає';
-      sub = `Орієнтовно до ${at(j)}${tail}`;
+      title = 'Зараз світла немає';
+      full = `~ до ${at(j)} (через ${leftLong})`;
+      short = `Орієнтовно до ${at(j)} (${leftShort})`;
     } else if (cur === 'maybe') {
-      title = 'Зараз за графіком можливе відключення';
-      sub = `До ${at(j)}${tail}`;
+      title = 'Зараз можливе відключення';
+      full = `~ до ${at(j)} (через ${leftLong})`;
+      short = `Орієнтовно до ${at(j)} (${leftShort})`;
     } else if (cur === 'on') {
-      title = 'Зараз за графіком світло є';
-      if (j < all.length) sub = `${all[j] === 'maybe' ? 'Можливе відключення' : 'Наступне відключення'} о ${at(j)}`;
-      else sub = tomorrow ? 'Відключень до кінця завтра немає' : `Відключень до кінця доби немає${noTomorrow}`;
+      title = 'Зараз світло є';
+      if (j < all.length) {
+        const maybe = all[j] === 'maybe';
+        full = `${maybe ? 'Можливе відключення' : 'Відключення'} о ${at(j)} (через ${leftLong})`;
+        short = `${maybe ? 'Можливе відключення' : 'Відключення'} о ${at(j)} (${leftShort})`;
+      } else {
+        full = short = tomorrow ? 'Відключень до кінця завтра немає' : 'Відключень до кінця доби немає';
+      }
     } else {
       title = 'Немає даних на поточну годину';
-      sub = '';
     }
-    box.append(el('div', null, title));
-    if (sub) box.append(el('div', 'sub2', sub));
+    // На телефоні довгий заголовок «Зараз можливе відключення» скорочуємо, щоб він був в 1 рядок.
+    const titleEl = el('div', 'now-title');
+    titleEl.append(el('span', 'v-full', title), el('span', 'v-short', cur === 'maybe' ? 'Можливо без світла' : title));
+    box.append(titleEl);
+    if (full) {
+      const sub = el('div', 'sub2');
+      sub.append(el('span', 'v-full', full), el('span', 'v-short', short));
+      box.append(sub);
+    }
   }
 
   function desktopTable(hours) {
@@ -668,10 +706,16 @@
     }
   }
 
+  // Повний підпис «на сьогодні 07.11.26» (великий екран) і стислий «сьогодні 07.11» (телефон), щоб дата не обрізалась.
+  const SHORT_PREFIX = { 'на сьогодні': 'сьогодні', 'на завтра': 'завтра', 'за вчора': 'вчора', 'за': '' };
   function pillEl(prefix, date, past) {
     const pill = el('div', past ? 'date-pill past' : 'date-pill');
-    const label = el('div', null, `${prefix} `);
-    label.append(el('span', null, pillFmt.format(date)));
+    const label = el('div', 'pill-label');
+    const sp = SHORT_PREFIX[prefix] ?? prefix;
+    label.append(
+      el('span', 'p-full', `${prefix} ${pillFmt.format(date)}`),
+      el('span', 'p-short', `${sp ? sp + ' ' : ''}${pillShortFmt.format(date)}`),
+    );
     pill.append(el('div', 'ic'), label);
     return pill;
   }
@@ -685,9 +729,8 @@
   // Тривалість: 1 половинка = 30 хв, далі «3,5 год».
   const durText = (halves) => (halves === 1 ? '30 хв' : `${(halves / 2).toLocaleString('uk-UA')} год`);
 
-  // Лінія 1 — плашки відключень (час); лінія 2 — смуга доби, де кожна зона пропорційна тривалості
-  // (сіре — без світла, жовте — світло) з кількістю годин усередині; для «сьогодні» — позначка поточного часу.
-  function summaryEl(hours, showNow) {
+  // Послідовні періоди доби однакового стану (у половинках години).
+  function segmentsOf(hours) {
     const slots = slotsOf(hours);
     const segs = [];
     for (let i = 0; i < slots.length;) {
@@ -696,6 +739,12 @@
       segs.push({ kind: slots[i], a: i, b: j });
       i = j;
     }
+    return segs;
+  }
+
+  // Над таблицею — плашки відключень (час).
+  function summaryEl(hours) {
+    const segs = segmentsOf(hours);
     const summary = el('div', 'summary');
     if (!segs.some((s) => s.kind === 'off' || s.kind === 'maybe')) {
       summary.append(el('div', 'summary-none', 'Відключень за графіком немає'));
@@ -712,7 +761,13 @@
       }
       summary.append(rowOff);
     }
-    // Лінія 2: смуга доби на всю ширину.
+    return summary;
+  }
+
+  // Під таблицею — смуга доби на всю ширину: зони пропорційні тривалості (сіре — без світла, жовте — світло),
+  // години всередині; для «сьогодні» — позначка поточного часу.
+  function barEl(hours, showNow) {
+    const segs = segmentsOf(hours);
     const KIND = { on: 'Світло є', off: 'Світла немає', maybe: 'Можливе відключення', na: 'Немає даних' };
     const bar = el('div', 'daybar');
     bar.setAttribute('role', 'img');
@@ -732,8 +787,7 @@
       mark.title = `Зараз ${String(n.h).padStart(2, '0')}:${String(n.m).padStart(2, '0')}`;
       bar.append(mark);
     }
-    summary.append(bar);
-    return summary;
+    return bar;
   }
 
   // Підсумок годин за добу — під таблицею (на місці колишньої легенди).
@@ -763,7 +817,7 @@
   }
 
   function fillDay(box, hours, isToday) {
-    box.append(summaryEl(hours, isToday), desktopTable(hours), mobileTables(hours), totalsEl(hours));
+    box.append(summaryEl(hours), desktopTable(hours), mobileTables(hours), barEl(hours, isToday), totalsEl(hours));
   }
 
   // День без графіка: лише повідомлення, без таблиці.
@@ -882,7 +936,7 @@
     prevBtn.setAttribute('aria-label', hint);
     prevBtn.replaceChildren(
       el('span', 'full', pastLoading ? 'Завантаження…' : pastExhausted ? 'Старіших немає' : '‹ Попередній день'),
-      el('span', 'short', pastLoading ? '…' : pastExhausted ? 'Немає' : '‹ Раніше'),
+      el('span', 'short', pastLoading ? '…' : pastExhausted ? 'Немає' : 'Раніше'),
     );
     if (top) top.append(prevBtn); else prevBtn.remove();
     if (pastError && top) {
@@ -914,7 +968,28 @@
     box.append(links);
   }
 
+  // Щохвилинне оновлення без перебудови таблиць: лише блок «Зараз…» з відліком, кольори кнопок черг
+  // і позначка «зараз» на смузі. У фоновій вкладці нічого не робимо; з настанням нової доби — повний render().
+  let renderedDay = 0;
+  function tick() {
+    if (document.hidden) return;
+    if (kyivMidnight(Date.now()) !== renderedDay) { render(); return; }
+    const keys = dayKeys();
+    renderGroups(keys);
+    const today = data && keys.today ? hoursFor(keys.today) : null;
+    const tomorrow = data && keys.tomorrow ? hoursFor(keys.tomorrow) : null;
+    const todayInfo = data && keys.today && data.info ? data.info[keys.today] : null;
+    renderNow(today, tomorrow, todayInfo && todayInfo.notes ? todayInfo.notes['GPV' + group] : null);
+    const mark = document.querySelector('#today .now-mark');
+    if (mark) {
+      const n = kyiv(new Date());
+      mark.style.left = `${((n.h * 60 + n.m) / 1440) * 100}%`;
+      mark.title = `Зараз ${String(n.h).padStart(2, '0')}:${String(n.m).padStart(2, '0')}`;
+    }
+  }
+
   function render() {
+    renderedDay = kyivMidnight(Date.now());
     const keys = dayKeys();
     renderGroups(keys);
     const today = data && keys.today ? hoursFor(keys.today) : null;
@@ -986,10 +1061,15 @@
     if (g && g !== group) { group = g; render(); }
   });
   document.addEventListener('visibilitychange', () => {
-    // Повернулись на вкладку — підтягуємо GitHub-копію (Worker — лише за кнопкою «Оновити»).
-    if (!document.hidden && Date.now() - loadedAt > 30 * 1000) load(false);
+    // Повернулись на вкладку — одразу актуалізуємо відлік, і підтягуємо GitHub-копію (Worker — лише за кнопкою «Оновити»).
+    if (document.hidden) return;
+    tick();
+    if (Date.now() - loadedAt > 30 * 1000) load(false);
   });
-  setInterval(render, 60 * 1000);
+  // Рівно на початку кожної хвилини — легке оновлення tick() (точність відліку — хвилина).
+  (function minuteTick() {
+    setTimeout(() => { tick(); minuteTick(); }, 60000 - (Date.now() % 60000) + 50);
+  })();
   setInterval(() => { if (!document.hidden) load(false); }, RELOAD_MS);
 
   render();
