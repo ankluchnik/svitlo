@@ -208,9 +208,14 @@
   let group = readGroup() || storedGroup() || DEFAULT_GROUP;
   let groupsSig = '';
 
+  // Черга з адреси: ?group=3.2 (основний варіант) або старий #group=3.2. Приймає і «GPV3.2».
+  function normalizeGroup(g) {
+    const m = g ? /^(?:GPV)?(\d+\.\d+)$/i.exec(g.trim()) : null;
+    return m ? m[1] : null;
+  }
   function readGroup() {
-    const g = new URLSearchParams(location.hash.slice(1)).get('group');
-    return g ? g.replace(/^GPV/i, '') : null;
+    return normalizeGroup(new URLSearchParams(location.search).get('group'))
+      || normalizeGroup(new URLSearchParams(location.hash.slice(1)).get('group'));
   }
   function storedGroup() {
     try { return localStorage.getItem('dtek-group'); } catch (e) { return null; }
@@ -218,7 +223,13 @@
   function setGroup(g) {
     group = g;
     try { localStorage.setItem('dtek-group', g); } catch (e) {}
-    try { history.replaceState(null, '', '#group=' + g); } catch (e) {}
+    try {
+      // Оновлюємо адресу, щоб її можна було скопіювати або додати на головний екран.
+      const url = new URL(location.href);
+      url.searchParams.set('group', g);
+      url.hash = '';
+      history.replaceState(null, '', url);
+    } catch (e) {}
     render();
   }
 
