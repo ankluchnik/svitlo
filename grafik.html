@@ -8,8 +8,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  /* Стилі графіка відтворюють сторінку https://www.dtek-dnem.com.ua/ua/shutdowns
-     (кольори, рамки, розміри клітинок, іконки, мобільний вигляд ≤845px). Іконки вбудовані. */
   :root {
     --text: #11203e;
     --muted: #5a636b;
@@ -18,10 +16,10 @@
     --maybe: rgba(204, 206, 207, .33);
     --yellow: #ffe500;
     --soft: #f6f6f6;
-    --icon-off: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.875 15.0818L0.918125 0.124957L0.125 0.918082L3.725 4.52371L2.9375 7.87058C2.91765 7.95443 2.91733 8.04171 2.93656 8.1257C2.95579 8.20969 2.99406 8.28815 3.04842 8.355C3.10277 8.42186 3.17176 8.47533 3.25006 8.5113C3.32835 8.54727 3.41387 8.56477 3.5 8.56246H6.21688L5.1875 15.2281C5.16892 15.3516 5.19201 15.4779 5.25312 15.5868C5.31423 15.6958 5.40989 15.7814 5.525 15.83C5.5965 15.859 5.67284 15.8742 5.75 15.875C5.8359 15.8747 5.92062 15.8549 5.99765 15.8168C6.07468 15.7788 6.14197 15.7237 6.19438 15.6556L9.95187 10.745L15.0819 15.875L15.875 15.0818ZM11.6731 8.48933L13.5069 6.09308C13.566 6.01315 13.6028 5.91899 13.6137 5.82018C13.6246 5.72137 13.6091 5.62145 13.5687 5.53058C13.5265 5.43065 13.4562 5.34509 13.3663 5.28421C13.2765 5.22333 13.171 5.18973 13.0625 5.18746H10.3906L11.375 0.811207C11.3936 0.728192 11.3932 0.642033 11.3737 0.559216C11.3542 0.476399 11.3162 0.399081 11.2625 0.333082C11.2084 0.266318 11.1397 0.212844 11.0617 0.176766C10.9837 0.140687 10.8984 0.122964 10.8125 0.124957H5.1875C5.05824 0.121501 4.93174 0.162683 4.82929 0.241571C4.72684 0.320458 4.65469 0.432234 4.625 0.558082L4.45625 1.28933L11.6731 8.48933Z' fill='%2311203E'/%3E%3C/svg%3E");
-    --icon-on: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11.9039 8.49553L4.42571 1.18281L3.74875 4.46782L3.01699 7.86709C2.99853 7.95225 2.99999 8.0409 3.02123 8.12621C3.04248 8.21151 3.08296 8.29119 3.13954 8.3591C3.19612 8.427 3.26729 8.48131 3.34756 8.51785C3.42784 8.55438 3.51506 8.57215 3.60252 8.5698H6.36252L5.45266 15.3398C5.4363 15.4653 5.46232 15.5935 5.52663 15.7042C5.59093 15.8149 5.68985 15.9017 5.80778 15.9511C5.88101 15.9806 5.95887 15.9961 6.03727 15.9968C6.12453 15.9966 6.21019 15.9764 6.28766 15.9378C6.36514 15.8991 6.43238 15.8431 6.48423 15.774L10.2013 10.7865L11.9039 8.49553ZM11.9039 8.49553L13.7179 6.06176C13.7763 5.98058 13.8118 5.88494 13.8209 5.78459C13.8299 5.68423 13.8121 5.58275 13.7693 5.49046C13.7243 5.38896 13.6511 5.30206 13.5586 5.24023C13.4662 5.17839 13.3583 5.14427 13.248 5.14196L10.5337 5.14196L11.4445 0.697198C11.4618 0.612884 11.4596 0.525376 11.4381 0.441262C11.4166 0.357148 11.3764 0.27862 11.3205 0.211587C11.2642 0.143778 11.1933 0.089467 11.1133 0.0528239C11.0333 0.0161808 10.9464 -0.00181983 10.8591 0.000204192L5.14484 0.000204192C5.01346 -0.00330556 4.88579 0.0385213 4.78332 0.118644C4.68085 0.198766 4.60984 0.312292 4.58224 0.44011L4.42571 1.18281L11.9039 8.49553Z' fill='%23FFE500'/%3E%3C/svg%3E");
-    --icon-maybe: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.875 15.0818L0.918125 0.124957L0.125 0.918082L3.725 4.52371L2.9375 7.87058C2.91765 7.95443 2.91733 8.04171 2.93656 8.1257C2.95579 8.20969 2.99406 8.28815 3.04842 8.355C3.10277 8.42186 3.17176 8.47533 3.25006 8.5113C3.32835 8.54727 3.41387 8.56477 3.5 8.56246H6.21688L5.1875 15.2281C5.16892 15.3516 5.19201 15.4779 5.25312 15.5868C5.31423 15.6958 5.40989 15.7814 5.525 15.83C5.5965 15.859 5.67284 15.8742 5.75 15.875C5.8359 15.8747 5.92062 15.8549 5.99765 15.8168C6.07468 15.7788 6.14197 15.7237 6.19438 15.6556L9.95187 10.745L15.0819 15.875L15.875 15.0818ZM11.6731 8.48933L13.5069 6.09308C13.566 6.01315 13.6028 5.91899 13.6137 5.82018C13.6246 5.72137 13.6091 5.62145 13.5687 5.53058C13.5265 5.43065 13.4562 5.34509 13.3663 5.28421C13.2765 5.22333 13.171 5.18973 13.0625 5.18746H10.3906L11.375 0.811207C11.3936 0.728192 11.3932 0.642033 11.3737 0.559216C11.3542 0.476399 11.3162 0.399081 11.2625 0.333082C11.2084 0.266318 11.1397 0.212844 11.0617 0.176766C10.9837 0.140687 10.8984 0.122964 10.8125 0.124957H5.1875C5.05824 0.121501 4.93174 0.162683 4.82929 0.241571C4.72684 0.320458 4.65469 0.432234 4.625 0.558082L4.45625 1.28933L11.6731 8.48933Z' fill='%23898E96'/%3E%3C/svg%3E");
-    --icon-on-dark: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11.9039 8.49553L4.42571 1.18281L3.74875 4.46782L3.01699 7.86709C2.99853 7.95225 2.99999 8.0409 3.02123 8.12621C3.04248 8.21151 3.08296 8.29119 3.13954 8.3591C3.19612 8.427 3.26729 8.48131 3.34756 8.51785C3.42784 8.55438 3.51506 8.57215 3.60252 8.5698H6.36252L5.45266 15.3398C5.4363 15.4653 5.46232 15.5935 5.52663 15.7042C5.59093 15.8149 5.68985 15.9017 5.80778 15.9511C5.88101 15.9806 5.95887 15.9961 6.03727 15.9968C6.12453 15.9966 6.21019 15.9764 6.28766 15.9378C6.36514 15.8991 6.43238 15.8431 6.48423 15.774L10.2013 10.7865L11.9039 8.49553ZM11.9039 8.49553L13.7179 6.06176C13.7763 5.98058 13.8118 5.88494 13.8209 5.78459C13.8299 5.68423 13.8121 5.58275 13.7693 5.49046C13.7243 5.38896 13.6511 5.30206 13.5586 5.24023C13.4662 5.17839 13.3583 5.14427 13.248 5.14196L10.5337 5.14196L11.4445 0.697198C11.4618 0.612884 11.4596 0.525376 11.4381 0.441262C11.4166 0.357148 11.3764 0.27862 11.3205 0.211587C11.2642 0.143778 11.1933 0.089467 11.1133 0.0528239C11.0333 0.0161808 10.9464 -0.00181983 10.8591 0.000204192L5.14484 0.000204192C5.01346 -0.00330556 4.88579 0.0385213 4.78332 0.118644C4.68085 0.198766 4.60984 0.312292 4.58224 0.44011L4.42571 1.18281L11.9039 8.49553Z' fill='%2311203E'/%3E%3C/svg%3E");
+    --icon-off: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.88 15.08L.92.12L.12.92L3.73 4.52L2.94 7.87C2.92 7.95 2.92 8.04 2.94 8.13C2.96 8.21 2.99 8.29 3.05 8.36C3.1 8.42 3.17 8.48 3.25 8.51C3.33 8.55 3.41 8.56 3.5 8.56H6.22L5.19 15.23C5.17 15.35 5.19 15.48 5.25 15.59C5.31 15.7 5.41 15.78 5.53 15.83C5.6 15.86 5.67 15.87 5.75 15.88C5.84 15.87 5.92 15.85 6 15.82C6.07 15.78 6.14 15.72 6.19 15.66L9.95 10.74L15.08 15.88L15.88 15.08ZM11.67 8.49L13.51 6.09C13.57 6.01 13.6 5.92 13.61 5.82C13.62 5.72 13.61 5.62 13.57 5.53C13.53 5.43 13.46 5.35 13.37 5.28C13.28 5.22 13.17 5.19 13.06 5.19H10.39L11.38.81C11.39.73 11.39.64 11.37.56C11.35.48 11.32.4 11.26.33C11.21.27 11.14.21 11.06.18C10.98.14 10.9.12 10.81.12H5.19C5.06.12 4.93.16 4.83.24C4.73.32 4.65.43 4.62.56L4.46 1.29L11.67 8.49Z' fill='%2311203E'/%3E%3C/svg%3E");
+    --icon-on: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11.9 8.5L4.43 1.18L3.75 4.47L3.02 7.87C3 7.95 3 8.04 3.02 8.13C3.04 8.21 3.08 8.29 3.14 8.36C3.2 8.43 3.27 8.48 3.35 8.52C3.43 8.55 3.52 8.57 3.6 8.57H6.36L5.45 15.34C5.44 15.47 5.46 15.59 5.53 15.7C5.59 15.81 5.69 15.9 5.81 15.95C5.88 15.98 5.96 16 6.04 16C6.12 16 6.21 15.98 6.29 15.94C6.37 15.9 6.43 15.84 6.48 15.77L10.2 10.79L11.9 8.5ZM11.9 8.5L13.72 6.06C13.78 5.98 13.81 5.88 13.82 5.78C13.83 5.68 13.81 5.58 13.77 5.49C13.72 5.39 13.65 5.3 13.56 5.24C13.47 5.18 13.36 5.14 13.25 5.14L10.53 5.14L11.44.7C11.46.61 11.46.53 11.44.44C11.42.36 11.38.28 11.32.21C11.26.14 11.19.09 11.11.05C11.03.02 10.95 0 10.86 0L5.14 0C5.01 0 4.89.04 4.78.12C4.68.2 4.61.31 4.58.44L4.43 1.18L11.9 8.5Z' fill='%23FFE500'/%3E%3C/svg%3E");
+    --icon-maybe: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.88 15.08L.92.12L.12.92L3.73 4.52L2.94 7.87C2.92 7.95 2.92 8.04 2.94 8.13C2.96 8.21 2.99 8.29 3.05 8.36C3.1 8.42 3.17 8.48 3.25 8.51C3.33 8.55 3.41 8.56 3.5 8.56H6.22L5.19 15.23C5.17 15.35 5.19 15.48 5.25 15.59C5.31 15.7 5.41 15.78 5.53 15.83C5.6 15.86 5.67 15.87 5.75 15.88C5.84 15.87 5.92 15.85 6 15.82C6.07 15.78 6.14 15.72 6.19 15.66L9.95 10.74L15.08 15.88L15.88 15.08ZM11.67 8.49L13.51 6.09C13.57 6.01 13.6 5.92 13.61 5.82C13.62 5.72 13.61 5.62 13.57 5.53C13.53 5.43 13.46 5.35 13.37 5.28C13.28 5.22 13.17 5.19 13.06 5.19H10.39L11.38.81C11.39.73 11.39.64 11.37.56C11.35.48 11.32.4 11.26.33C11.21.27 11.14.21 11.06.18C10.98.14 10.9.12 10.81.12H5.19C5.06.12 4.93.16 4.83.24C4.73.32 4.65.43 4.62.56L4.46 1.29L11.67 8.49Z' fill='%23898E96'/%3E%3C/svg%3E");
+    --icon-on-dark: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11.9 8.5L4.43 1.18L3.75 4.47L3.02 7.87C3 7.95 3 8.04 3.02 8.13C3.04 8.21 3.08 8.29 3.14 8.36C3.2 8.43 3.27 8.48 3.35 8.52C3.43 8.55 3.52 8.57 3.6 8.57H6.36L5.45 15.34C5.44 15.47 5.46 15.59 5.53 15.7C5.59 15.81 5.69 15.9 5.81 15.95C5.88 15.98 5.96 16 6.04 16C6.12 16 6.21 15.98 6.29 15.94C6.37 15.9 6.43 15.84 6.48 15.77L10.2 10.79L11.9 8.5ZM11.9 8.5L13.72 6.06C13.78 5.98 13.81 5.88 13.82 5.78C13.83 5.68 13.81 5.58 13.77 5.49C13.72 5.39 13.65 5.3 13.56 5.24C13.47 5.18 13.36 5.14 13.25 5.14L10.53 5.14L11.44.7C11.46.61 11.46.53 11.44.44C11.42.36 11.38.28 11.32.21C11.26.14 11.19.09 11.11.05C11.03.02 10.95 0 10.86 0L5.14 0C5.01 0 4.89.04 4.78.12C4.68.2 4.61.31 4.58.44L4.43 1.18L11.9 8.5Z' fill='%2311203E'/%3E%3C/svg%3E");
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: #fff; color: var(--text); font: 14px/1.4 Roboto, "Segoe UI", Arial, sans-serif; }
@@ -39,7 +37,6 @@
 
   .groups { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 8px; margin-bottom: 20px; }
   .sgroup { padding: 0; color: rgba(17, 32, 62, .6); font-variant-numeric: tabular-nums; }
-  /* Колір кнопки черги = стан зараз за графіком: жовта — світло є, сіра — немає */
   .sgroup.st-on { background: var(--yellow); border-color: var(--yellow); color: var(--text); }
   .sgroup.st-off { background: var(--off); border-color: var(--off); color: var(--text); }
   .sgroup.st-maybe { background: #e6e7e8; border-color: #e6e7e8; color: var(--text); }
@@ -50,7 +47,6 @@
   .notice.warn { background: #fff8cc; }
   .notice.err { background: #fde4e1; color: #8a1f14; }
 
-  /* Блок «Зараз…»; кольори ті самі, що й у кнопок черг: жовтий — світло є, сірий — світла немає */
   .outage { border: 1px solid #cfcfcf; border-radius: 10px; padding: 15px; margin-bottom: 30px; font-size: 16px; }
   .outage .sub2 { font-size: 14px; color: var(--muted); }
   .outage .v-short { display: none; }
@@ -58,7 +54,6 @@
   .outage.st-off { background: var(--off); border-color: var(--off); }
   .outage.st-on .sub2, .outage.st-off .sub2 { color: var(--text); }
 
-  /* Кнопка «попередній день» живе в заголовку найранішого показаного дня */
   .prev-btn {
     position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
     height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid rgba(17, 32, 62, .18);
@@ -81,7 +76,6 @@
   .date-pill .ic { width: 20px; height: 20px; background: var(--icon-off) no-repeat center / 16.33px 16.64px; }
   .date-pill .p-short { display: none; }
   .date-pill.past { background: var(--soft); border-color: var(--soft); }
-  /* Над таблицею — плашки відключень; однаковий відступ 12 px: плашка дати → плашки → таблиця → смуга */
   .summary { margin: 0 0 12px; }
   .summary-none { font-size: 16px; font-weight: 500; }
   .ranges { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -94,11 +88,8 @@
   .range-pill.maybe { background: repeating-linear-gradient(135deg, #e3e4e5 0 4px, #f3f3f4 4px 8px); }
   .range-pill.maybe .ic { background-image: var(--icon-maybe); }
   .range-pill small { font-size: 13px; font-weight: 400; color: rgba(17, 32, 62, .78); }
-  /* Смуга доби: зони пропорційні часу, заокруглення лише на краях смуги */
   .daybar { position: relative; display: flex; height: 24px; border-radius: 6px; overflow: hidden; margin: 0 0 8px; }
   @media (min-width: 846px) {
-    /* горизонтальна таблиця: смуга рівно під колонками годин (рамка 1px + колонка «Часові проміжки» 92px),
-       тож межі зон збігаються з межами годин у таблиці */
     .daybar { margin-left: 93px; margin-right: 1px; }
   }
   .daybar .seg {
@@ -113,8 +104,6 @@
   .daybar .seg.na { background: #eeeeef; }
   .daybar .seg .num { font-size: 13px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .daybar .seg .unit { font-size: 13px; font-weight: 700; line-height: 1; margin-left: -2px; }
-  /* вузька зона: спершу ховаємо «г», потім значок, ще вужча — і число.
-     Пороги з запасом від реальної ширини вмісту: «3,5г» ≈ 40 px, «⚡3,5» ≈ 33 px; цілі «3г» ≈ 29 px, «⚡3» ≈ 23 px */
   @container (max-width: 44px) { .daybar .seg:not(.int) .unit { display: none; } }
   @container (max-width: 36px) { .daybar .seg:not(.int) .ic { display: none; } }
   @container (max-width: 21px) { .daybar .seg:not(.int) .num { display: none; } }
@@ -122,7 +111,6 @@
   @container (max-width: 26px) { .daybar .seg.int .ic { display: none; } }
   @container (max-width: 12px) { .daybar .seg.int .num { display: none; } }
   .daybar .now-mark { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #d93a2b; box-shadow: 0 0 0 1px #fff; }
-  /* Підсумок годин під смугою */
   .totals { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14px; color: var(--muted); }
   .totals .total { display: inline-flex; align-items: center; gap: 6px; }
   .totals b { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -131,7 +119,6 @@
   .totals .dot.on { background: var(--yellow); }
   .totals .dot.maybe { background: repeating-linear-gradient(135deg, #c9cacc 0 2px, #f3f3f4 2px 4px); }
 
-  /* Клітинки годин */
   .c-on { background: #fff; }
   .c-na { background: repeating-linear-gradient(135deg, #ececec 0 4px, #fff 4px 8px); }
   .c-off { background: var(--off) var(--icon-off) no-repeat center / 16px 16px; }
@@ -145,8 +132,6 @@
   .c-first::before, .c-mfirst::before { left: 0; border-right: 1px solid var(--line); background-position: 7px center; }
   .c-second::before, .c-msecond::before { right: 0; border-left: 1px solid var(--line); background-position: -7px center; }
 
-  /* Десктоп: одна таблиця на 24 колонки, підписи вертикально */
-  /* Рамка — на обгортці, а не на самій таблиці: так права лінія і заокруглення не губляться при масштабі 110–150% */
   .fact-wrap { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
   table.fact { width: 100%; table-layout: fixed; border: 0; border-collapse: separate; border-spacing: 0; margin: 0; }
   .fact th, .fact td { padding: 0; border-right: 1px solid var(--line); }
@@ -157,9 +142,7 @@
   .fact thead th.head div { writing-mode: horizontal-tb; display: inline-block; }
   .fact tbody td { height: 38px; }
 
-  /* Мобільний: дві вертикальні таблиці по 12 годин */
   .table2col { display: none; flex-wrap: wrap; justify-content: center; gap: 12px 20px; margin-bottom: 12px; }
-  /* як і на десктопі: рамка на обгортці кожної з двох таблиць, щоб права лінія не губилась при масштабі */
   .table2col .t-wrap { flex: none; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
   .table2col table { width: min-content; min-width: 106px; border: 0; border-collapse: separate; border-spacing: 0; }
   .table2col th, .table2col td { padding: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
@@ -198,7 +181,6 @@
     .prev-btn .short { display: inline; }
     .fact-wrap { display: none; }
     .table2col { display: flex; }
-    /* половини години ділимо по вертикалі, як на сайті */
     .table2col .cell::before, .legend .box::before { width: 100%; height: 50%; left: 0; right: auto; border-left: 0; border-right: 0; }
     .table2col .c-first::before, .table2col .c-mfirst::before { top: 0; border-bottom: 1px solid var(--line); background-position: center 7px; }
     .table2col .c-second::before, .table2col .c-msecond::before { top: auto; bottom: 0; border-top: 1px solid var(--line); background-position: center -7px; }
@@ -209,18 +191,15 @@
   }
 
   @media (max-width: 480px) {
-    /* Телефон. «Зараз…»: фіксований 24px — «Зараз світла немає» в 1 рядок навіть на 320 px; стислий другий рядок */
     .outage .v-full { display: none; }
     .outage .v-short { display: inline; }
     .outage .now-title { font-size: 24px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .outage .sub2 { font-size: 13px; margin-top: 2px; }
-    /* плашка дати: стислий підпис, кнопка «Раніше» в ряду праворуч від дати (а не поверх) — накладання неможливе */
     .day .date-pill { padding: 6px 6px 6px 12px; gap: 8px; }
     .date-pill .pill-label { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .day .date-pill .p-full { display: none; }
     .day .date-pill .p-short { display: inline; }
     .date-pill .prev-btn { position: static; transform: none; margin-left: auto; flex: none; }
-    /* компактніші плашки відключень — 3 вміщаються в один рядок */
     .ranges { gap: 4px; }
     .range-pill { font-size: 13px; padding: 4px 6px 4px 4px; gap: 3px; }
     .range-pill .ic { width: 12px; height: 12px; background-size: 12px 12px; }
@@ -255,30 +234,22 @@
 (() => {
   'use strict';
 
-  // Джерела даних (беремо обидва паралельно, для кожного дня показуємо новіше):
-  // 1) LIVE_URL — ваш Cloudflare Worker, який на кожен запит бере свіжий JSON з відкритого API YASNO
-  //    (Дніпро, ДнЕМ). Це «живі» дані на момент відкриття / натискання «Оновити».
-  // 2) SRC — копія DisconSchedule.fact/preset зі сторінки https://www.dtek-dnem.com.ua/ua/shutdowns,
-  //    яку публічний репозиторій оновлює приблизно кожні 5 хв (запасний варіант + підписи легенди).
   const LIVE_URL = 'https://svitlo.akluchnik-dp.workers.dev';
   const SRC = 'https://raw.githubusercontent.com/Baskerville42/outage-data-ua/main/data/dnipro.json';
   const SITE = 'https://www.dtek-dnem.com.ua/ua/shutdowns';
   const REPO = 'https://github.com/Baskerville42/outage-data-ua';
   const DEFAULT_GROUP = '3.2';
   const RELOAD_MS = 5 * 60 * 1000;
-  const REFRESH_COOLDOWN_MS = 1000; // кнопка «Оновити» — не частіше разу на секунду
-  // Попередні дні: остання версія файлу в історії репозиторію перед кінцем потрібної доби.
+  const REFRESH_COOLDOWN_MS = 1000;
   const HISTORY_API = 'https://api.github.com/repos/Baskerville42/outage-data-ua/commits?path=data/dnipro.json&per_page=1&until=';
   const RAW_AT = (sha) => `https://raw.githubusercontent.com/Baskerville42/outage-data-ua/${sha}/data/dnipro.json`;
   const FALLBACK_GROUPS = ['1.1', '1.2', '2.1', '2.2', '3.1', '3.2', '4.1', '4.2', '5.1', '5.2', '6.1', '6.2'];
 
-  // Кожна година = дві половини: [перші 30 хв, другі 30 хв] — для підсумку і статусу «зараз».
   const HALVES = {
     yes: ['on', 'on'], no: ['off', 'off'], maybe: ['maybe', 'maybe'],
     first: ['off', 'on'], second: ['on', 'off'],
     mfirst: ['maybe', 'on'], msecond: ['on', 'maybe'],
   };
-  // CSS-клас клітинки для кожного значення з даних ДТЕК.
   const CELL = { yes: 'c-on', no: 'c-off', maybe: 'c-maybe', first: 'c-first', second: 'c-second', mfirst: 'c-mfirst', msecond: 'c-msecond' };
   const TYPES = {
     yes: 'Світло є', no: 'Світла немає', maybe: 'Можливо відключення',
@@ -298,7 +269,6 @@
   const timeFmt = new Intl.DateTimeFormat('uk-UA', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
   const timeSecFmt = new Intl.DateTimeFormat('uk-UA', { timeZone: TZ, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-  // ---- YASNO → той самий формат, що й у ДТЕК ({"1": "yes"|"no"|"first"|..., …, "24": …}) ----
   const YTYPE = { Definite: 'off', NotPlanned: 'on' };
   function yasnoHours(slots) {
     const stateAt = (min) => {
@@ -309,18 +279,10 @@
     for (let h = 0; h < 24; h++) {
       const a = stateAt(h * 60 + 15);
       const b = stateAt(h * 60 + 45);
-      let v;
-      if (a === b) v = a === 'on' ? 'yes' : a === 'off' ? 'no' : 'maybe';
-      else if (a === 'off' && b === 'on') v = 'first';
-      else if (a === 'on' && b === 'off') v = 'second';
-      else if (a === 'maybe' && b === 'on') v = 'mfirst';
-      else if (a === 'on' && b === 'maybe') v = 'msecond';
-      else v = 'no';
-      hours[h + 1] = v;
+      hours[h + 1] = Object.keys(HALVES).find((k) => HALVES[k][0] === a && HALVES[k][1] === b) || 'no';
     }
     return hours;
   }
-  // Рядок для порівняння часу оновлення: «YYYY-MM-DD HH:MM» за Києвом.
   function kyivStamp(ms) {
     if (!Number.isFinite(ms)) return '';
     const p = {};
@@ -332,7 +294,6 @@
     return m ? `${m[3]}-${m[2]}-${m[1]} ${m[4]}:${m[5]}` : '';
   }
 
-  // Відповідь YASNO: { "3.2": { today: {date, status, slots}, tomorrow: {...}, updatedOn }, … }
   function parseYasno(json) {
     const days = {};
     for (const [g, gd] of Object.entries(json || {})) {
@@ -349,7 +310,6 @@
         if (d.status === 'ScheduleApplies') day.groups[k] = yasnoHours(Array.isArray(d.slots) ? d.slots : []);
         else if (d.status === 'NoOutages') day.groups[k] = yasnoHours([]);
         else if (d.status === 'EmergencyShutdowns') day.notes[k] = 'EmergencyShutdowns';
-        // WaitingForSchedule — графіка ще немає, день не додаємо
       }
     }
     for (const k of Object.keys(days)) {
@@ -358,7 +318,6 @@
     return days;
   }
 
-  // Для кожного дня беремо джерело з новішим часом оновлення (при рівному — YASNO).
   function mergeSources(mirrorJson, yasnoDays) {
     if (!mirrorJson && !yasnoDays) return null;
     const mirrorDays = (mirrorJson && mirrorJson.fact && mirrorJson.fact.data) || {};
@@ -373,8 +332,6 @@
     const mirrorStamp = mirrorJson ? dtekStamp(mirrorJson.fact.update) : '';
     for (const [k, g] of Object.entries(mirrorDays)) put(k, g, null, mirrorStamp, false);
     for (const [k, d] of Object.entries(yasnoDays || {})) put(k, d.groups, d.notes, d.stamp, true);
-    // Екстрені/аварійні відключення за YASNO: для таких черг лишаємо графік із копії сайту ДТЕК (GitHub),
-    // якщо він там є. Позначаємо це в info[key].fallback, щоб показати коротке попередження.
     for (const [k, inf] of Object.entries(info)) {
       for (const [g, note] of Object.entries(inf.notes || {})) {
         if (note !== 'EmergencyShutdowns' || !mirrorDays[k] || !mirrorDays[k][g]) continue;
@@ -399,16 +356,15 @@
   let loadedAt = 0;
   let loading = false;
   let loadError = null;
-  let mirror = null; // остання копія ДТЕК (raw JSON)
-  let yasno = null; // останні дані YASNO (вже перетворені по днях)
+  let mirror = null;
+  let yasno = null;
   let mirrorErr = null;
   let yasnoErr = null;
   let yasnoAt = 0;
-  let lastManualAt = 0; // коли востаннє натискали «Оновити»
+  let lastManualAt = 0;
   let group = readGroup() || storedGroup() || DEFAULT_GROUP;
   let groupsSig = '';
 
-  // Черга з адреси: ?group=3.2 (основний варіант) або старий #group=3.2. Приймає і «GPV3.2».
   function normalizeGroup(g) {
     const m = g ? /^(?:GPV)?(\d+\.\d+)$/i.exec(g.trim()) : null;
     return m ? m[1] : null;
@@ -424,7 +380,6 @@
     group = g;
     try { localStorage.setItem('dtek-group', g); } catch (e) {}
     try {
-      // Оновлюємо адресу, щоб її можна було скопіювати або додати на головний екран.
       const url = new URL(location.href);
       url.searchParams.set('group', g);
       url.hash = '';
@@ -438,7 +393,6 @@
     for (const x of partsFmt.formatToParts(date)) p[x.type] = x.value;
     return { ymd: `${p.year}-${p.month}-${p.day}`, h: Number(p.hour) % 24, m: Number(p.minute), s: Number(p.second) };
   }
-  // Київська північ (unix-секунди) з поправкою на перехід літнього/зимового часу (доба 23 або 25 год).
   function snapMidnight(sec) {
     const h = kyiv(new Date(sec * 1000)).h;
     if (h === 23) return sec + 3600;
@@ -455,13 +409,11 @@
   const at = (i) => (i <= 48 ? hhmm(i) : `${hhmm(i - 48)} завтра`);
 
   const halvesOf = (v) => HALVES[v] || ['na', 'na'];
-  // 48 півгодин доби: 'on' | 'off' | 'maybe' | 'na'.
   function slotsOf(hours) {
     const s = [];
     for (let h = 1; h <= 24; h++) s.push(...halvesOf(hours[h]));
     return s;
   }
-  // Послідовні періоди однакового стану (у половинках години).
   function segmentsOf(slots) {
     const segs = [];
     for (let i = 0; i < slots.length;) {
@@ -472,16 +424,13 @@
     }
     return segs;
   }
-  // Стан черги в поточну півгодину (n — kyiv(now)); без побудови всієї доби.
   const stateAt = (hours, n) => (hours ? halvesOf(hours[n.h + 1])[n.m >= 30 ? 1 : 0] : null);
-  // Позначка «зараз» на смузі доби.
   function placeNowMark(mark, n) {
     mark.style.left = `${((n.h * 60 + n.m) / 1440) * 100}%`;
     mark.title = `Зараз ${String(n.h).padStart(2, '0')}:${String(n.m).padStart(2, '0')}`;
   }
 
   function groupList() {
-    // Базові 12 черг показуємо завжди (навіть якщо для якоїсь зараз немає таблиці, напр. екстрені відключення).
     const set = new Set(FALLBACK_GROUPS);
     const days = (data && data.fact && data.fact.data) || {};
     const notes = Object.values((data && data.info) || {}).map((i) => i.notes || {});
@@ -499,8 +448,6 @@
     });
   }
 
-  // Ключі в fact.data — unix-час початку доби за Києвом. Шукаємо саме «сьогодні» і «завтра»
-  // за поточним київським часом, а не довіряємо fact.today (копія могла не встигнути оновитися після півночі).
   function dayKeys() {
     const out = { today: null, tomorrow: null };
     const days = data && data.fact && data.fact.data;
@@ -515,7 +462,6 @@
     }
     return out;
   }
-  // Екстрені/аварійні відключення для черги g у день key (за YASNO) — навіть якщо графік узято з копії ДТЕК.
   function isEmergency(key, g) {
     const inf = key && data && data.info && data.info[key];
     return !!inf && ((inf.notes && inf.notes['GPV' + g] === 'EmergencyShutdowns') || !!(inf.fallback && inf.fallback['GPV' + g]));
@@ -577,7 +523,6 @@
   function renderNotices(keys) {
     const box = $('notices');
     box.replaceChildren();
-    // Текст — для людини; технічна причина (напр. «Failed to fetch») — у підказці при наведенні.
     const add = (cls, text, detail) => {
       const n = el('div', `notice ${cls}`, text);
       if (detail) n.title = detail;
@@ -603,7 +548,6 @@
   function renderNow(today, tomorrow, emergency) {
     const box = $('now');
     box.replaceChildren();
-    // Екстрені/аварійні відключення: світла немає незалежно від графіка (сам графік лишається в таблицях).
     if (emergency) {
       box.hidden = false;
       box.className = 'outage st-off';
@@ -623,24 +567,17 @@
     box.className = cur === 'on' || cur === 'off' ? `outage st-${cur}` : 'outage';
     let j = i;
     while (j < all.length && all[j] === cur) j++;
-    // Скільки лишилося до межі j (половинки години від початку сьогоднішньої доби), хвилини округлюємо вгору:
-    // о 01:41:30 до 06:30 лишається 4:48:30 → «4:49» (телефон) / «4 год 49 хв» (великий екран).
     const mins = Math.max(0, Math.ceil((j * 1800 - nowSec) / 60));
     const hh = Math.floor(mins / 60);
     const mm = mins % 60;
     const leftShort = `${hh}:${String(mm).padStart(2, '0')}`;
     const leftLong = hh && mm ? `${hh} год ${mm} хв` : hh ? `${hh} год` : `${mm} хв`;
 
-    // Два варіанти другого рядка: повний (великий екран) і стислий (телефон, щоб блок був у 2 рядки).
     let title;
     let full = '';
     let short = '';
-    if (cur === 'off') {
-      title = 'Зараз світла немає';
-      full = `~ до ${at(j)} (через ${leftLong})`;
-      short = `Орієнтовно до ${at(j)} (${leftShort})`;
-    } else if (cur === 'maybe') {
-      title = 'Зараз можливе відключення';
+    if (cur === 'off' || cur === 'maybe') {
+      title = cur === 'off' ? 'Зараз світла немає' : 'Зараз можливе відключення';
       full = `~ до ${at(j)} (через ${leftLong})`;
       short = `Орієнтовно до ${at(j)} (${leftShort})`;
     } else if (cur === 'on') {
@@ -655,7 +592,6 @@
     } else {
       title = 'Немає даних на поточну годину';
     }
-    // На телефоні довгий заголовок «Зараз можливе відключення» скорочуємо, щоб він був в 1 рядок.
     const titleEl = el('div', 'now-title');
     titleEl.append(el('span', 'v-full', title), el('span', 'v-short', cur === 'maybe' ? 'Можливо без світла' : title));
     box.append(titleEl);
@@ -719,8 +655,6 @@
     return wrap;
   }
 
-  // Одна легенда на всю сторінку (перед нижнім блоком). Пункти «можливо…» — лише якщо такі значення є
-  // у показаних зараз днях вибраної черги.
   function renderLegend() {
     const box = $('legend');
     box.replaceChildren();
@@ -744,7 +678,6 @@
     }
   }
 
-  // Повний підпис «на сьогодні 07.11.26» (великий екран) і стислий «сьогодні 07.11» (телефон), щоб дата не обрізалась.
   const SHORT_PREFIX = { 'на сьогодні': 'сьогодні', 'на завтра': 'завтра', 'за вчора': 'вчора', 'за': '' };
   function pillEl(prefix, date, past) {
     const pill = el('div', past ? 'date-pill past' : 'date-pill');
@@ -757,7 +690,6 @@
     pill.append(el('div', 'ic'), label);
     return pill;
   }
-  // День без графіка (або ще завантаження): лише повідомлення, без таблиці.
   function messageEl(strong, text) {
     const m = el('div', 'info-message');
     m.append(el('b', null, strong));
@@ -765,16 +697,13 @@
     return m;
   }
 
-  // Тривалість: 1 половинка = 30 хв, далі «3,5 год».
   const durText = (halves) => (halves === 1 ? '30 хв' : `${(halves / 2).toLocaleString('uk-UA')} год`);
 
-  // Над таблицею — плашки відключень (час).
   function summaryEl(segs) {
     const summary = el('div', 'summary');
     if (!segs.some((s) => s.kind === 'off' || s.kind === 'maybe')) {
       summary.append(el('div', 'summary-none', 'Відключень за графіком немає'));
     } else {
-      // Лінія 1: лише відключення (час).
       const rowOff = el('div', 'ranges');
       for (const s of segs) {
         if (s.kind === 'on' || s.kind === 'na') continue;
@@ -789,8 +718,6 @@
     return summary;
   }
 
-  // Під таблицею — смуга доби (на широкому екрані — рівно під колонками годин, на телефоні — на всю ширину):
-  // зони пропорційні тривалості (сіре — без світла, жовте — світло), години всередині; для «сьогодні» — позначка «зараз».
   function barEl(segs, showNow) {
     const KIND = { on: 'Світло є', off: 'Світла немає', maybe: 'Можливе відключення', na: 'Немає даних' };
     const bar = el('div', 'daybar');
@@ -812,7 +739,6 @@
     return bar;
   }
 
-  // Підсумок годин за добу — під смугою.
   function totalsEl(slots, segs) {
     const count = (k) => slots.filter((s) => s === k).length;
     const totals = el('div', 'totals');
@@ -823,7 +749,6 @@
     };
     totals.append(total('off', count('off'), 'без світла'), total('on', count('on'), 'зі світлом'));
     if (count('maybe')) totals.append(total('maybe', count('maybe'), 'можливо без світла'));
-    // Кількість відключень (окремих періодів без світла, разом із «можливими»).
     const n = segs.filter((s) => s.kind === 'off' || s.kind === 'maybe').length;
     const word = n % 10 === 1 && n % 100 !== 11 ? 'відключення'
       : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'відключення' : 'відключень';
@@ -833,8 +758,6 @@
     return totals;
   }
 
-  // День із графіком: плашки → таблиця (горизонтальна / дві вертикальні) → смуга → підсумок.
-  // Розклад доби на півгодини й періоди рахуємо один раз і передаємо всім частинам.
   function fillDay(box, hours, isToday) {
     const slots = slotsOf(hours);
     const segs = segmentsOf(slots);
@@ -863,9 +786,8 @@
     fillDay(box, hours, isToday);
   }
 
-  // ---- Попередні дні ----
-  let past = []; // [0] — вчора, [1] — позавчора, ...
-  let pastBase = 0; // київська північ «сьогодні», від якої рахували past
+  let past = [];
+  let pastBase = 0;
   let pastLoading = false;
   let pastError = null;
   let pastExhausted = false;
@@ -874,7 +796,6 @@
   prevBtn.addEventListener('click', loadPrevDay);
   const pastErr = el('div', 'past-error');
 
-  // Минулий день уже не зміниться, тому кешуємо його (усі черги) у браузері.
   function readDayCache(ymd) {
     try {
       const v = JSON.parse(localStorage.getItem('dtek-day-' + ymd) || 'null');
@@ -943,7 +864,6 @@
       else fillDay(sec, hours, false);
       box.append(sec);
     }
-    // Кнопку переносимо в заголовок найранішого дня: перший з попередніх або «на сьогодні».
     const top = box.querySelector('.date-pill') || document.querySelector('#today .date-pill');
     const nextKey = prevMidnight(past.length ? past[past.length - 1].key : base);
     const hint = pastExhausted ? 'Старіших даних немає' : `Показати графік за ${pillFmt.format(new Date(nextKey * 1000))}`;
@@ -984,10 +904,7 @@
     box.append(links);
   }
 
-  // Щохвилинне оновлення без перебудови таблиць: лише блок «Зараз…» з відліком, кольори кнопок черг
-  // і позначка «зараз» на смузі. У фоновій вкладці нічого не робимо; з настанням нової доби — повний render().
   let renderedDay = 0;
-  // Графіки вибраної черги на сьогодні/завтра + позначка екстрених відключень на сьогодні.
   function currentDays() {
     const keys = dayKeys();
     const today = data && keys.today ? hoursFor(keys.today) : null;
@@ -1031,13 +948,10 @@
     if (json && json.error) throw new Error(json.error);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     if (!json || !Object.values(json).some((g) => g && g.today)) throw new Error('неочікуваний формат');
-    // Коли Worker взяв дані з YASNO.
     const fetchedAt = Date.parse(r.headers.get('X-Fetched-At') || '');
     return { days: parseYasno(json), fetchedAt: Number.isFinite(fetchedAt) ? fetchedAt : Date.now() };
   }
 
-  // live = true  — відкриття сторінки або кнопка «Оновити»: GitHub-копія + свіжий запит до Worker (YASNO).
-  // live = false — автооновлення (таймер, повернення на вкладку): лише GitHub-копія, Worker не викликаємо.
   async function load(live) {
     if (loading) return;
     loading = true;
@@ -1057,7 +971,6 @@
     } finally {
       loading = false;
       btn.textContent = 'Оновити';
-      // Кнопка знову активна не раніше ніж через секунду після останнього натискання.
       const left = REFRESH_COOLDOWN_MS - (Date.now() - lastManualAt);
       if (left > 0) setTimeout(() => { if (!loading) btn.disabled = false; }, left);
       else btn.disabled = false;
@@ -1075,12 +988,10 @@
     if (g && g !== group) { group = g; render(); }
   });
   document.addEventListener('visibilitychange', () => {
-    // Повернулись на вкладку — одразу актуалізуємо відлік, і підтягуємо GitHub-копію (Worker — лише за кнопкою «Оновити»).
     if (document.hidden) return;
     tick();
     if (Date.now() - loadedAt > 30 * 1000) load(false);
   });
-  // Рівно на початку кожної хвилини — легке оновлення tick() (точність відліку — хвилина).
   (function minuteTick() {
     setTimeout(() => { tick(); minuteTick(); }, 60000 - (Date.now() % 60000) + 50);
   })();

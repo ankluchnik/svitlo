@@ -7,20 +7,11 @@
 </head>
 <body>
 <p style="font: 14px Arial, sans-serif; color: #5a636b; padding: 24px 16px">Завантаження…</p>
-<!--
-  dim.html — особиста версія сторінки: завантажує grafik.html як є (усі зміни графіка — лише там)
-  і додає в плашку «Зараз…» значок живого стану пристроїв Tuya — лише для черги 3.2.
-  Обидва файли мають лежати поруч (GitHub Pages: …/svitlo/grafik.html і …/svitlo/dim.html).
--->
 <template id="addon">
 <style>
-  /* Значок праворуч у плашці «Зараз…»; плашка лишається у 2 рядки. Без значка (інші черги) — плашка як у grafik.html. */
   #now:not([hidden]):has(> .pdev) { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-items: center; }
   #now > :not(.pdev) { grid-column: 1; }
   #now > .pdev { grid-column: 2; grid-row: 1 / span 2; }
-  /* Один значок на метеостанцію + розетку. Жовтий з ⚡ — світло є в обох, сірий з перекресленою ⚡ — немає в обох,
-     блідий — немає даних. Різний стан — половинки, як у таблиці годин: ліва (на телефоні верхня) — метеостанція,
-     права (нижня) — розетка. */
   .pdev {
     position: relative; overflow: hidden; width: 36px; height: 30px;
     border-radius: 6px; border: 1px solid rgba(17, 32, 62, .4);
@@ -43,28 +34,22 @@
 <script>
 (() => {
   'use strict';
-  // Пристрої Tuya без резервного живлення: онлайн лише коли є світло. Ключі — як у TUYA_DEVICES у Worker.
-  // Порядок = половинки значка: перша — метеостанція, друга — розетка.
-  // staleMin: метеостанція на батарейках — Tuya годинами показує її «онлайн» і без зв'язку, тому дивимось на час
-  // її останнього звіту: давніше за staleMin хвилин — зв'язку (а отже й світла) немає.
-  // Має бути трохи більшим за інтервал звітів у налаштуваннях пристрою (зараз 120 хв).
   const DEVICES = [
     { key: 'flat', label: 'Метеостанція', staleMin: 130 },
     { key: 'home', label: 'Розетка' },
   ];
   const HOME_GROUP = '3.2';
   const DEVICES_URL = 'https://svitlo.akluchnik-dp.workers.dev/devices';
-  const POLL_MS = 2 * 60 * 1000; // раз на 2 хв, лише поки вкладка видима і вибрана черга 3.2
+  const POLL_MS = 2 * 60 * 1000;
   const timeFmt = new Intl.DateTimeFormat('uk-UA', { timeZone: 'Europe/Kyiv', hour: '2-digit', minute: '2-digit' });
   const box = document.getElementById('now');
 
-  let dev = null; // { checkedAt, devices: { home: { online, lastSeen? } | { error }, … } }
+  let dev = null;
   let devErr = null;
   let devAt = 0;
-  let devOff = false; // Worker без /devices або Tuya не налаштовано — більше не опитуємо
+  let devOff = false;
   let loading = false;
 
-  // Вибрана черга — з кнопок черг сторінки grafik.html.
   const group = () => {
     const chip = document.querySelector('.sgroup[aria-checked="true"]');
     return chip ? chip.textContent.trim() : null;
@@ -76,7 +61,6 @@
     try {
       const r = await fetch(DEVICES_URL, { cache: 'no-store' });
       const j = await r.json().catch(() => null);
-      // 501 — Tuya не налаштовано; без поля devices — старий Worker без /devices.
       if (r.status === 501 || (r.ok && !(j && j.devices))) {
         devOff = true;
         throw new Error(r.status === 501 ? 'Tuya не налаштовано у Worker' : 'Worker ще без /devices — задеплойте новий worker.js');
@@ -94,13 +78,12 @@
   }
   const loadIfStale = () => { if (Date.now() - devAt > 60 * 1000) loadDevices(); };
 
-  // Значок: спільний стан або половинки. Подробиці по кожному пристрою — у підказці.
   function makeIcon() {
     const lines = [];
     const [a, b] = DEVICES.map(({ key, label, staleMin }) => {
       const d = !devErr && dev && dev.devices ? dev.devices[key] : null;
       const seenAt = d && d.lastSeen ? Date.parse(d.lastSeen) : NaN;
-      const stale = staleMin && Date.now() - seenAt > staleMin * 60000; // NaN → false
+      const stale = staleMin && Date.now() - seenAt > staleMin * 60000;
       const st = !d || d.error ? 'unknown' : d.online && !stale ? 'on' : 'off';
       const seen = Number.isFinite(seenAt) ? `, останні дані о ${timeFmt.format(new Date(seenAt))}` : '';
       lines.push(`${label}: ${st === 'on' ? `світло є (на зв'язку${seen})`
@@ -117,8 +100,6 @@
     return icon;
   }
 
-  // Плашку grafik.html перемальовує сама (щохвилини, при зміні черги, після оновлення даних) — після кожного разу
-  // домальовуємо значок. Якщо значок уже такий самий — нічого не чіпаємо (і не зациклюємось на власних змінах).
   function paint() {
     const old = box.querySelector(':scope > .pdev');
     if (box.hidden || group() !== HOME_GROUP || (!dev && !devErr)) { if (old) old.remove(); return; }
@@ -137,8 +118,12 @@
 </script>
 </template>
 <script>
-// Беремо актуальну grafik.html і показуємо її замість цієї сторінки, дописавши в кінець надбудову з <template id="addon">.
 (async () => {
+  const url = new URL(location.href);
+  if (!url.searchParams.get('group') && !new URLSearchParams(url.hash.slice(1)).get('group')) {
+    url.searchParams.set('group', '3.2');
+    history.replaceState(null, '', url);
+  }
   try {
     const r = await fetch('grafik.html', { cache: 'no-cache' });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
