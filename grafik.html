@@ -1003,13 +1003,17 @@
   })();
   setInterval(() => { if (!document.hidden) load(false); }, RELOAD_MS);
 
-  if (matchMedia('(hover: none)').matches) {
+  {
     const tip = el('div', 'tip');
     tip.setAttribute('role', 'tooltip');
     let tipFor = null;
     let tipTimer = 0;
+    let touch = false;
     const hideTip = () => { tip.remove(); tipFor = null; clearTimeout(tipTimer); };
+    document.addEventListener('pointerdown', (e) => { touch = e.pointerType !== 'mouse'; }, { passive: true });
+    document.addEventListener('touchstart', () => { touch = true; }, { passive: true });
     document.addEventListener('click', (e) => {
+      if (!touch) { hideTip(); return; }
       const t = e.target.closest('[title]');
       if (!t || !t.title || t === tipFor || t.closest('button, a')) { hideTip(); return; }
       tipFor = t;
