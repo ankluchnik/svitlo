@@ -51,22 +51,8 @@
   .notice.err { background: #fde4e1; color: #8a1f14; }
 
   /* Блок «Зараз…»; кольори ті самі, що й у кнопок черг: жовтий — світло є, сірий — світла немає */
-  .outage {
-    display: flex; align-items: center; gap: 12px;
-    border: 1px solid #cfcfcf; border-radius: 10px; padding: 15px; margin-bottom: 30px; font-size: 16px;
-  }
-  .outage[hidden] { display: none; }
-  .outage .now-text { flex: 1 1 auto; min-width: 0; }
+  .outage { border: 1px solid #cfcfcf; border-radius: 10px; padding: 15px; margin-bottom: 30px; font-size: 16px; }
   .outage .sub2 { font-size: 14px; color: var(--muted); }
-  /* Живий стан пристроїв (?live=…): значки в рамках праворуч у плашці, у порядку ?live — метеостанція, розетка.
-     Жовтий з ⚡ — на зв'язку (світло є), сірий з перекресленою ⚡ — немає зв'язку (світла немає), блідий — немає даних. */
-  .now-live { display: flex; gap: 6px; flex: none; }
-  .pdev {
-    width: 34px; height: 28px; border-radius: 6px; border: 1px solid rgba(17, 32, 62, .4);
-    background: rgba(255, 255, 255, .55) var(--icon-maybe) no-repeat center / 16px 16px;
-  }
-  .pdev.on { background-color: var(--yellow); background-image: var(--icon-on-dark); }
-  .pdev.off { background-color: var(--off); background-image: var(--icon-off); }
   .outage .v-short { display: none; }
   .outage.st-on { background: var(--yellow); border-color: var(--yellow); }
   .outage.st-off { background: var(--off); border-color: var(--off); }
@@ -228,10 +214,6 @@
     .outage .v-short { display: inline; }
     .outage .now-title { font-size: 24px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .outage .sub2 { font-size: 13px; margin-top: 2px; }
-    /* значки пристроїв — стовпчиком праворуч, щоб плашка лишалась у 2 рядки */
-    .outage { gap: 8px; }
-    .now-live { flex-direction: column; gap: 4px; }
-    .pdev { width: 28px; height: 22px; background-size: 14px 14px; }
     /* плашка дати: стислий підпис, кнопка «Раніше» в ряду праворуч від дати (а не поверх) — накладання неможливе */
     .day .date-pill { padding: 6px 6px 6px 12px; gap: 8px; }
     .date-pill .pill-label { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -285,21 +267,6 @@
   const DEFAULT_GROUP = '3.2';
   const RELOAD_MS = 5 * 60 * 1000;
   const REFRESH_COOLDOWN_MS = 1000; // кнопка «Оновити» — не частіше разу на секунду
-  // Пристрої Tuya без резервного живлення: онлайн лише коли є світло. Ключі — як у TUYA_DEVICES у Worker.
-  // Вмикаються параметром адреси ?live=: 1 — метеостанція, 2 — розетка, 3 — обидві. Без нього — ні показу, ні запитів.
-  // staleMin: метеостанція на батарейках — Tuya годинами показує її «онлайн» і без зв'язку, тому дивимось на час
-  // її останнього звіту: давніше за staleMin хвилин — зв'язку (а отже й світла) немає.
-  // Має бути трохи більшим за інтервал звітів у налаштуваннях пристрою (зараз 120 хв).
-  const DEVICES = [
-    { bit: 1, key: 'flat', label: 'Метеостанція', staleMin: 130 },
-    { bit: 2, key: 'home', label: 'Розетка' },
-  ];
-  const LIVE_DEVICES = (() => {
-    const mask = Number(new URLSearchParams(location.search).get('live'));
-    return Number.isInteger(mask) ? DEVICES.filter((d) => mask & d.bit) : [];
-  })();
-  const DEVICES_URL = LIVE_URL + '/devices';
-  const DEVICES_POLL_MS = 2 * 60 * 1000; // опитування раз на 2 хв, лише поки вкладка видима
   // Попередні дні: остання версія файлу в історії репозиторію перед кінцем потрібної доби.
   const HISTORY_API = 'https://api.github.com/repos/Baskerville42/outage-data-ua/commits?path=data/dnipro.json&per_page=1&until=';
   const RAW_AT = (sha) => `https://raw.githubusercontent.com/Baskerville42/outage-data-ua/${sha}/data/dnipro.json`;
@@ -635,16 +602,14 @@
 
   function renderNow(today, tomorrow, emergency) {
     const box = $('now');
-    const text = el('div', 'now-text');
-    box.replaceChildren(text);
+    box.replaceChildren();
     // Екстрені/аварійні відключення: світла немає незалежно від графіка (сам графік лишається в таблицях).
     if (emergency) {
       box.hidden = false;
       box.className = 'outage st-off';
       const t = el('div', 'now-title');
       t.append(el('span', 'v-full', 'Діють екстрені відключення'), el('span', 'v-short', 'Екстрені відключення'));
-      text.append(t, el('div', 'sub2', 'Графіки не застосовуються'));
-      appendLive(box);
+      box.append(t, el('div', 'sub2', 'Графіки не застосовуються'));
       return;
     }
     if (!today) { box.hidden = true; return; }
@@ -693,13 +658,12 @@
     // На телефоні довгий заголовок «Зараз можливе відключення» скорочуємо, щоб він був в 1 рядок.
     const titleEl = el('div', 'now-title');
     titleEl.append(el('span', 'v-full', title), el('span', 'v-short', cur === 'maybe' ? 'Можливо без світла' : title));
-    text.append(titleEl);
+    box.append(titleEl);
     if (full) {
       const sub = el('div', 'sub2');
       sub.append(el('span', 'v-full', full), el('span', 'v-short', short));
-      text.append(sub);
+      box.append(sub);
     }
-    appendLive(box);
   }
 
   function desktopTable(hours) {
@@ -1101,65 +1065,10 @@
     }
   }
 
-  // ---- Живий стан пристроїв Tuya (через Worker /devices) ----
-  let dev = null; // { checkedAt, devices: { home: { online } | { error }, … } }
-  let devErr = null;
-  let devAt = 0;
-  let devOff = false; // Worker ще без /devices або Tuya не налаштовано — іконки не показуємо
-  let devLoading = false;
-
-  async function loadDevices() {
-    if (!LIVE_DEVICES.length || devOff || devLoading) return;
-    devLoading = true;
-    try {
-      const r = await fetch(DEVICES_URL, { cache: 'no-store' });
-      const j = await r.json().catch(() => null);
-      // 501 — Tuya не налаштовано; без поля devices — старий Worker без /devices. Більше не опитуємо.
-      if (r.status === 501 || (r.ok && !(j && j.devices))) {
-        devOff = true;
-        throw new Error(r.status === 501 ? 'Tuya не налаштовано у Worker' : 'Worker ще без /devices — задеплойте новий worker.js');
-      }
-      if (!r.ok || !j) throw new Error((j && j.error) || `HTTP ${r.status}`);
-      dev = j;
-      devErr = null;
-    } catch (e) {
-      devErr = (e && e.message) || String(e);
-    } finally {
-      devAt = Date.now();
-      devLoading = false;
-      const { today, tomorrow, emergency } = currentDays();
-      renderNow(today, tomorrow, emergency);
-    }
-  }
-
-  // Значки пристроїв у плашці «Зараз…» (після першої відповіді Worker). Підпис і подробиці — у підказці.
-  function appendLive(box) {
-    if (!LIVE_DEVICES.length || (!dev && !devErr)) return;
-    const when = dev && dev.checkedAt ? ` · перевірено о ${timeFmt.format(new Date(dev.checkedAt))}` : '';
-    const wrap = el('div', 'now-live');
-    for (const { key, label, staleMin } of LIVE_DEVICES) {
-      const d = !devErr && dev && dev.devices ? dev.devices[key] : null;
-      const seenAt = d && d.lastSeen ? Date.parse(d.lastSeen) : NaN;
-      const stale = staleMin && Date.now() - seenAt > staleMin * 60000; // NaN → false
-      const st = !d || d.error ? 'unknown' : d.online && !stale ? 'on' : 'off';
-      const seen = Number.isFinite(seenAt) ? `, останні дані о ${timeFmt.format(new Date(seenAt))}` : '';
-      const text = st === 'on' ? `світло є (пристрій онлайн${seen})`
-        : st === 'off' ? (stale ? `світла немає (немає зв'язку${seen})` : 'світла немає (пристрій офлайн)')
-          : `немає даних (${devErr || (d && d.error) || 'пристрою немає в TUYA_DEVICES'})`;
-      const icon = el('span', `pdev ${st}`);
-      icon.title = `${label}: ${text}${st === 'unknown' ? '' : when}`;
-      icon.setAttribute('role', 'img');
-      icon.setAttribute('aria-label', icon.title);
-      wrap.append(icon);
-    }
-    box.append(wrap);
-  }
-
   $('refresh').addEventListener('click', () => {
     if (loading || Date.now() - lastManualAt < REFRESH_COOLDOWN_MS) return;
     lastManualAt = Date.now();
     load(true);
-    loadDevices();
   });
   window.addEventListener('hashchange', () => {
     const g = readGroup();
@@ -1170,18 +1079,15 @@
     if (document.hidden) return;
     tick();
     if (Date.now() - loadedAt > 30 * 1000) load(false);
-    if (Date.now() - devAt > 60 * 1000) loadDevices();
   });
   // Рівно на початку кожної хвилини — легке оновлення tick() (точність відліку — хвилина).
   (function minuteTick() {
     setTimeout(() => { tick(); minuteTick(); }, 60000 - (Date.now() % 60000) + 50);
   })();
   setInterval(() => { if (!document.hidden) load(false); }, RELOAD_MS);
-  setInterval(() => { if (!document.hidden) loadDevices(); }, DEVICES_POLL_MS);
 
   render();
   load(true);
-  loadDevices();
 })();
 </script>
 </body>
