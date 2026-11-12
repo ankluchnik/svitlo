@@ -172,6 +172,12 @@
   .meta p { margin: 0 0 4px; }
   .meta a { color: inherit; }
 
+  .tip {
+    position: fixed; z-index: 10; max-width: min(320px, calc(100vw - 16px)); padding: 7px 10px; border-radius: 8px;
+    background: var(--text); color: #fff; font-size: 13px; line-height: 1.35; white-space: pre-line;
+    box-shadow: 0 4px 14px rgba(17, 32, 62, .25); pointer-events: none;
+  }
+
   @media (max-width: 845px) {
     .groups { grid-template-columns: repeat(6, minmax(0, 1fr)); }
     .discon-title { margin-top: 10px; }
@@ -996,6 +1002,31 @@
     setTimeout(() => { tick(); minuteTick(); }, 60000 - (Date.now() % 60000) + 50);
   })();
   setInterval(() => { if (!document.hidden) load(false); }, RELOAD_MS);
+
+  if (matchMedia('(hover: none)').matches) {
+    const tip = el('div', 'tip');
+    tip.setAttribute('role', 'tooltip');
+    let tipFor = null;
+    let tipTimer = 0;
+    const hideTip = () => { tip.remove(); tipFor = null; clearTimeout(tipTimer); };
+    document.addEventListener('click', (e) => {
+      const t = e.target.closest('[title]');
+      if (!t || !t.title || t === tipFor || t.closest('button, a')) { hideTip(); return; }
+      tipFor = t;
+      tip.textContent = t.title;
+      tip.style.left = tip.style.top = '0px';
+      document.body.append(tip);
+      const r = t.getBoundingClientRect();
+      const w = tip.offsetWidth;
+      const h = tip.offsetHeight;
+      tip.style.left = `${Math.max(8, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 8))}px`;
+      tip.style.top = `${r.top - h - 8 >= 8 ? r.top - h - 8 : r.bottom + 8}px`;
+      clearTimeout(tipTimer);
+      tipTimer = setTimeout(hideTip, 8000);
+    });
+    addEventListener('scroll', hideTip, { passive: true });
+    addEventListener('resize', hideTip);
+  }
 
   render();
   load(true);
